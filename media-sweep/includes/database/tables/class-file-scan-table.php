@@ -34,7 +34,7 @@ class File_Scan_Table extends Table {
             scan_id    BIGINT UNSIGNED NOT NULL,
             file_id    BIGINT UNSIGNED NOT NULL,
             status     ENUM('in_media','not_in_media','in_use','unused','orphaned') NOT NULL,
-            notes      TEXT NULL,
+            notes      LONGTEXT NULL,
             recorded_at DATETIME NOT NULL,
             PRIMARY KEY (id),
             UNIQUE KEY uniq_pair (scan_id, file_id),

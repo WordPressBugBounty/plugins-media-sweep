@@ -365,16 +365,21 @@ class Filesystem_Scanner_Service extends Base_Scanner_Service implements Filesys
 				// Check file status
 				$status_result = $this->check_file_status( $full_path, $options, $media_relationships );
 
-				// Create file scan record
-				File_Scan_Model::create(
-					array(
-						'scan_id'    => $scan_id,
-						'file_id'    => $file->id,
-						'status'     => $status_result['status'],
-						'notes'      => $status_result['notes'],
-						'created_at' => current_time( 'mysql' ),
-					)
-				);
+				// Create file scan record. try/catch keeps a single bad row
+				// (e.g. a wpdb edge case) from aborting the whole batch.
+				try {
+					File_Scan_Model::create(
+						array(
+							'scan_id'    => $scan_id,
+							'file_id'    => $file->id,
+							'status'     => $status_result['status'],
+							'notes'      => $this->cap_notes( $status_result['notes'] ),
+							'created_at' => current_time( 'mysql' ),
+						)
+					);
+				} catch ( \Exception $e ) {
+					++$result['errors'];
+				}
 			} else {
 				// File already processed, count as skipped
 				++$result['skipped'];

@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
@@ -172,6 +172,14 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 6. **Trash Management** – Safe file removal with easy restore capabilities
 
 == Changelog ==
+
+= 1.0.5 =
+* Fixed scan aborting at 40-53% with "WordPress database error: Processing the value for the following field failed: notes" on sites where one image is referenced in many posts/pages
+* Notes column upgraded from TEXT to LONGTEXT and applied to existing installs automatically on upgrade
+* Each file's recorded usage is now capped at 10 entries with a "+ N more usage locations" summary so the database stays lean
+* A single problematic row no longer aborts the entire scan — it is now logged as an error and the rest of the batch continues
+* Results table now shows the first usage location inline next to the filename so it is obvious where each file is used without clicking
+* Fixed the usage-notes popover overflowing the viewport when a file has many usages — it now scrolls inside a fixed-height container
 
 = 1.0.4 =
 * Dynamic batch size based on server resources (max_execution_time and memory_limit)

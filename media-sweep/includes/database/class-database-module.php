@@ -32,6 +32,11 @@ class Database_Module {
 	}
 
 	/**
+	 * Option key tracking the schema version most recently applied via dbDelta.
+	 */
+	const SCHEMA_VERSION_OPTION = 'mswp_db_schema_version';
+
+	/**
 	 * Initialize the database module.
 	 */
 	private function init() {
@@ -43,18 +48,23 @@ class Database_Module {
 	}
 
 	/**
-	 * Install database tables.
+	 * Install database tables and record the schema version.
 	 */
 	public function install_tables() {
 		$this->installer->install_tables();
+		update_option( self::SCHEMA_VERSION_OPTION, MEDIA_SWEEP_VERSION );
 	}
 
 	/**
-	 * Maybe install tables if they don't exist.
+	 * Install on first activation, or re-run dbDelta when the plugin has been
+	 * upgraded since we last applied the schema (so column type changes are
+	 * picked up on existing installs without requiring deactivate/reactivate).
 	 */
 	public function maybe_install_tables() {
-		if ( ! $this->installer->tables_exist() ) {
-			$this->installer->install_tables();
+		$installed_version = get_option( self::SCHEMA_VERSION_OPTION );
+
+		if ( ! $this->installer->tables_exist() || $installed_version !== MEDIA_SWEEP_VERSION ) {
+			$this->install_tables();
 		}
 	}
 }

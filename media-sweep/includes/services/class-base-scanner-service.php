@@ -18,6 +18,14 @@ use Media_Sweep\Utils\Path_Helper;
 abstract class Base_Scanner_Service {
 
 	/**
+	 * Maximum number of usage notes stored per file. Larger lists are
+	 * truncated with a "+ N more usage locations" summary so a single image
+	 * referenced in thousands of posts cannot bloat the database.
+	 */
+	const MAX_NOTES_PER_FILE = 10;
+
+
+	/**
 	 * System monitor instance
 	 *
 	 * @var System_Monitor_Service
@@ -136,7 +144,9 @@ abstract class Base_Scanner_Service {
 	 * @return array Array with post_title, post_type, and display_title
 	 */
 	protected function get_post_info( $post_id ) {
-		$post_title = get_the_title( $post_id );
+		// Decode HTML entities (e.g. "V-Neck T-Shirt &#8211; Blue" -> "V-Neck T-Shirt – Blue")
+		// so notes display human-readable titles instead of raw entity codes.
+		$post_title = html_entity_decode( get_the_title( $post_id ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		$post_type  = get_post_type( $post_id );
 
 		// Fallback if title is empty
@@ -445,6 +455,40 @@ abstract class Base_Scanner_Service {
 		}
 
 		return $notes;
+	}
+
+	/**
+	 * Cap a notes array to MAX_NOTES_PER_FILE entries, appending a summary
+	 * line for the remainder. Keeps stored notes bounded for files that are
+	 * referenced widely (logos, placeholders, etc.).
+	 *
+	 * @param array $notes Raw notes collected during scanning.
+	 * @return array Capped list of notes ready for storage.
+	 */
+	protected function cap_notes( $notes ) {
+		if ( ! is_array( $notes ) ) {
+			return array();
+		}
+
+		$total = count( $notes );
+		if ( $total <= self::MAX_NOTES_PER_FILE ) {
+			return $notes;
+		}
+
+		$kept      = array_slice( $notes, 0, self::MAX_NOTES_PER_FILE );
+		$remaining = $total - self::MAX_NOTES_PER_FILE;
+		$kept[]    = sprintf(
+			/* translators: %d is the number of additional usage locations not shown individually. */
+			_n(
+				'+ %d more usage location',
+				'+ %d more usage locations',
+				$remaining,
+				'media-sweep'
+			),
+			$remaining
+		);
+
+		return $kept;
 	}
 
 	/**

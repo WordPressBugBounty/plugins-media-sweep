@@ -352,7 +352,7 @@ class Database_Query_Helper {
 				/* translators: %1$s is the custom field name, %2$s is the post title */
 				__( 'Used in custom field "%1$s" for %2$s', 'media-sweep' ),
 				$result->meta_key,
-				get_the_title( $result->post_id )
+				html_entity_decode( get_the_title( $result->post_id ), ENT_QUOTES | ENT_HTML5, 'UTF-8' )
 			);
 		}
 
@@ -374,7 +374,7 @@ class Database_Query_Helper {
 				$notes[] = sprintf(
 					__( 'Used in custom field "%1$s" for %2$s', 'media-sweep' ),
 					$result->meta_key,
-					get_the_title( $result->post_id )
+					html_entity_decode( get_the_title( $result->post_id ), ENT_QUOTES | ENT_HTML5, 'UTF-8' )
 				);
 			}
 		}
@@ -399,7 +399,7 @@ class Database_Query_Helper {
 		$notes   = array();
 
 		foreach ( $results as $result ) {
-			$post_title    = get_the_title( $result->post_id );
+			$post_title    = html_entity_decode( get_the_title( $result->post_id ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 			$post_type     = get_post_type( $result->post_id );
 			$display_title = ! empty( $post_title ) ? $post_title : sprintf( __( 'Untitled %s', 'media-sweep' ), $post_type );
 

@@ -168,19 +168,24 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 				->first();
 
 			if ( ! $existing_scan && ! in_array( $file->id, $processed_file_ids ) ) {
-				// Create file scan record
-				File_Scan_Model::create(
-					array(
-						'scan_id'    => $scan_id,
-						'file_id'    => $file->id,
-						'status'     => $status,
-						'notes'      => $notes,
-						'created_at' => current_time( 'mysql' ),
-					)
-				);
+				// Create file scan record. try/catch keeps a single bad row
+				// (e.g. a wpdb edge case) from aborting the whole batch.
+				try {
+					File_Scan_Model::create(
+						array(
+							'scan_id'    => $scan_id,
+							'file_id'    => $file->id,
+							'status'     => $status,
+							'notes'      => $this->cap_notes( $notes ),
+							'created_at' => current_time( 'mysql' ),
+						)
+					);
 
-				// Track this file as processed
-				$processed_file_ids[] = $file->id;
+					// Track this file as processed
+					$processed_file_ids[] = $file->id;
+				} catch ( \Exception $e ) {
+					++$results['errors'];
+				}
 			}
 
 			// Process thumbnails if enabled
@@ -533,18 +538,22 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 					$parent_notes
 				);
 
-				File_Scan_Model::create(
-					array(
-						'scan_id'    => $scan_id,
-						'file_id'    => $thumb_file->id,
-						'status'     => $parent_status,
-						'notes'      => $thumb_notes,
-						'created_at' => current_time( 'mysql' ),
-					)
-				);
+				try {
+					File_Scan_Model::create(
+						array(
+							'scan_id'    => $scan_id,
+							'file_id'    => $thumb_file->id,
+							'status'     => $parent_status,
+							'notes'      => $this->cap_notes( $thumb_notes ),
+							'created_at' => current_time( 'mysql' ),
+						)
+					);
 
-				// Track this thumbnail file as processed
-				$processed_file_ids[] = $thumb_file->id;
+					// Track this thumbnail file as processed
+					$processed_file_ids[] = $thumb_file->id;
+				} catch ( \Exception $e ) {
+					// Skip this thumbnail; main scan continues.
+				}
 			}
 		}
 	}
