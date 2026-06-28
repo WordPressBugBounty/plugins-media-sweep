@@ -2,9 +2,9 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 Requires at least: 5.8
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
 License: GPL-2.0-or-later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -173,6 +173,10 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 
 == Changelog ==
 
+= 1.0.6 =
+* Compatibility with WordPress 7.0
+* New: optional "Delete All Data on Uninstall" setting (Settings → Data Management). When enabled, deleting the plugin now cleanly removes its database tables, options, scheduled tasks, and the Media Sweep trash folder. Disabled by default, so your scan history and trash are preserved unless you opt in — including on multisite, where each site's choice is respected.
+
 = 1.0.5 =
 * Fixed scan aborting at 40-53% with "WordPress database error: Processing the value for the following field failed: notes" on sites where one image is referenced in many posts/pages
 * Notes column upgraded from TEXT to LONGTEXT and applied to existing installs automatically on upgrade
@@ -238,6 +242,9 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 * Minimal server resource usage during scans
 
 == Upgrade Notice ==
+
+= 1.0.6 =
+Tested with WordPress 7.0 and adds an optional "Delete All Data on Uninstall" setting for a clean removal. Safe upgrade — data deletion is off by default.
 
 = 1.0.0 =
 Welcome to Media Sweep! This initial release provides everything you need to clean up your WordPress media library safely and efficiently. Start reclaiming server space today with our powerful dual-scan system and intelligent file detection.

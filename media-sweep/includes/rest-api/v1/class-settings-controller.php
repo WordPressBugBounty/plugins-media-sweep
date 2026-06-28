@@ -80,14 +80,20 @@ class Settings_Controller extends REST_Controller {
 			'title'      => 'media-sweep',
 			'type'       => 'object',
 			'properties' => array(
-				'auto_delete_after_days' => array(
+				'auto_delete_after_days'    => array(
 					'type'        => 'integer',
 					'description' => __( 'Auto Delete After Days', 'media-sweep' ),
 					'default'     => 30,
 				),
+				'delete_data_on_uninstall' => array(
+					'type'        => 'boolean',
+					'description' => __( 'Delete all plugin data when the plugin is uninstalled', 'media-sweep' ),
+					'default'     => false,
+				),
 			),
 			'default'    => array(
-				'auto_delete_after_days' => 30,
+				'auto_delete_after_days'    => 30,
+				'delete_data_on_uninstall' => false,
 			),
 		);
 	}
