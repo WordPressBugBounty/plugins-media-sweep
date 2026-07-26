@@ -9,6 +9,8 @@ namespace Media_Sweep\Admin;
 
 use Media_Sweep\Utils\Path_Helper;
 use Media_Sweep\Services\System_Monitor_Service;
+use Media_Sweep\Models\Scan_Model;
+use Media_Sweep\REST_API\V1\Promo_Controller;
 
 /**
  * Admin Module Class
@@ -137,6 +139,9 @@ class Admin_Module {
 	 */
 	public function enqueue_admin_scripts() {
 		wp_enqueue_media();
+		// Core's plugin AJAX installer (`wp.updates.installPlugin`). Lets the cross-promo cards
+		// install a sibling plugin in place, from WordPress.org, through core's own mechanism.
+		wp_enqueue_script( 'updates' );
 		wp_enqueue_script( 'mswp-admin' );
 		wp_enqueue_style( 'mswp-admin' );
 
@@ -197,7 +202,128 @@ class Admin_Module {
 			'uploads_dir_url'       => Path_Helper::get_uploads_dir_url(),
 			'is_woocommerce_active' => class_exists( 'WooCommerce' ),
 			'server_info'           => $this->system_monitor->get_server_info(),
+			// Cross-promo of our sibling WPCreatix plugins — already filtered to what this site can
+			// actually use (see get_siblings()). Empty array = nothing relevant, render nothing.
+			'siblings'              => $this->get_siblings(),
+			// Engagement gate shared by the dashboard promo card and the rating banner: true once the
+			// user has some history with the plugin, so a brand-new install is never nudged.
+			'promo_should_prompt'   => $this->get_promo_should_prompt(),
+			// Whether the rating ask has been permanently dismissed (shared with the PHP review notice).
+			'review_dismissed'      => (bool) get_user_meta( get_current_user_id(), Promo_Controller::REVIEW_DISMISSED_META, true ),
 		);
+	}
+
+	/**
+	 * Build the filtered cross-promo list for the current site and user.
+	 *
+	 * All filtering happens here, server-side: WooCommerce-dependent products are dropped when
+	 * WooCommerce is inactive (so a non-WooCommerce site sees nothing), and any product already
+	 * installed and active is dropped (nothing left to prompt). Install and activate links route
+	 * through WordPress core's own screens — never our servers — and are only populated when the
+	 * current user holds the matching capability; the card falls back to the wp.org listing
+	 * otherwise. No wp.org rating or install counts are exposed — benefit-led copy only.
+	 *
+	 * The AI Sales Agent is listed first so the dashboard card, which shows a single top pick,
+	 * prefers it.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function get_siblings() {
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$woo_active   = class_exists( 'WooCommerce' );
+		$can_install  = current_user_can( 'install_plugins' );
+		$can_activate = current_user_can( 'activate_plugins' );
+		$user_id      = get_current_user_id();
+
+		$catalog = array(
+			array(
+				'slug'         => 'wpcreatix-ai-sales-agent',
+				'name'         => __( 'WPCreatix AI Sales Agent', 'media-sweep' ),
+				'tagline'      => __( 'An AI sales agent that answers product questions and walks shoppers to checkout.', 'media-sweep' ),
+				'requires_woo' => true,
+			),
+			array(
+				'slug'         => 'vidshop-for-woocommerce',
+				'name'         => __( 'VidShop', 'media-sweep' ),
+				'tagline'      => __( 'Turn shoppers into buyers with shoppable video feeds.', 'media-sweep' ),
+				'requires_woo' => true,
+			),
+		);
+
+		$siblings = array();
+
+		foreach ( $catalog as $product ) {
+			// Drop WooCommerce-dependent products on a store without WooCommerce.
+			if ( $product['requires_woo'] && ! $woo_active ) {
+				continue;
+			}
+
+			$slug      = $product['slug'];
+			$file      = $slug . '/' . $slug . '.php';
+			$installed = file_exists( WP_PLUGIN_DIR . '/' . $file );
+			$active    = $installed && is_plugin_active( $file );
+
+			// Drop products already installed and active — nothing left to promote.
+			if ( $active ) {
+				continue;
+			}
+
+			// Native install: core's plugin search, pre-filtered to the plugin, so the merchant reads
+			// the full listing before installing. Only when the user can actually install.
+			$install_url = ( ! $installed && $can_install )
+				? self_admin_url( 'plugin-install.php?tab=search&type=term&s=' . rawurlencode( $product['name'] ) )
+				: '';
+
+			// Installed-but-inactive: a normal, nonce-protected core activation link. `wp_nonce_url()`
+			// HTML-encodes the ampersands for direct HTML output; decode them so the URL survives being
+			// handed to JS and used as a React href (otherwise `&amp;` reaches the server and 403s).
+			$activate_url = ( $installed && $can_activate )
+				? html_entity_decode( wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=' . rawurlencode( $file ) ), 'activate-plugin_' . $file ) )
+				: '';
+
+			$siblings[] = array(
+				'slug'         => $slug,
+				'name'         => $product['name'],
+				'tagline'      => $product['tagline'],
+				'installed'    => $installed,
+				'active'       => $active,
+				'can_install'  => $can_install,
+				'wporg_url'    => 'https://wordpress.org/plugins/' . $slug . '/',
+				'install_url'  => $install_url,
+				'activate_url' => $activate_url,
+				'dismissed'    => (bool) get_user_meta( $user_id, Promo_Controller::dismissed_meta_key( $slug ), true ),
+			);
+		}
+
+		return $siblings;
+	}
+
+	/**
+	 * Engagement gate for the dashboard promo card and the rating banner.
+	 *
+	 * Mirrors the review notice's "give it a week / show some value first" logic so a fresh install is
+	 * never cross-sold or asked to rate: true once the user has completed at least one scan, or once
+	 * seven days have passed since their first admin view (the review notice's `first_seen` latch).
+	 *
+	 * @return bool
+	 */
+	private function get_promo_should_prompt() {
+		// Completed at least one scan (a finished scan has a `finished_at`).
+		if ( Scan_Model::query()->where_not_null( 'finished_at' )->count() > 0 ) {
+			return true;
+		}
+
+		// Or seven days since the first admin view. Reuse the review notice's first-seen latch; if it
+		// has not been set yet, the user is brand new and we hold off.
+		$first_seen = get_user_meta( get_current_user_id(), 'mswp_review_notice_first_seen', true );
+		if ( empty( $first_seen ) ) {
+			return false;
+		}
+
+		return ( ( time() - intval( $first_seen ) ) / DAY_IN_SECONDS ) >= 7;
 	}
 
 	/**

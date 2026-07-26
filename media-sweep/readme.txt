@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
@@ -172,6 +172,10 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 6. **Trash Management** – Safe file removal with easy restore capabilities
 
 == Changelog ==
+
+= 1.0.7 =
+* New: a "More from WPCreatix" section that helps you discover the other WPCreatix plugins, with one-click install and activate right from the admin.
+* Fixed: the "leave a review" banner could reappear after being dismissed — dismissing it is now remembered for good.
 
 = 1.0.6 =
 * Compatibility with WordPress 7.0

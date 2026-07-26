@@ -13,6 +13,7 @@ use Media_Sweep\REST_API\V1\Scanner_Controller;
 use Media_Sweep\REST_API\V1\Settings_Controller;
 use Media_Sweep\REST_API\V1\Actions_Controller;
 use Media_Sweep\REST_API\V1\Trash_Controller;
+use Media_Sweep\REST_API\V1\Promo_Controller;
 use Media_Sweep\Dependency_Resolver;
 use Media_Sweep\Service_Container;
 
@@ -63,6 +64,7 @@ class REST_API_Module {
 			Settings_Controller::class,
 			Actions_Controller::class,
 			Trash_Controller::class,
+			Promo_Controller::class,
 		);
 	}
 
