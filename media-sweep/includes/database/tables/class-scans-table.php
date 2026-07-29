@@ -35,9 +35,14 @@ class Scans_Table extends Table {
             `finished_at` DATETIME NULL,
             `mode` VARCHAR(32) NOT NULL,
             `options` LONGTEXT NULL,
+            `status` VARCHAR(20) NOT NULL DEFAULT 'running',
+            `phase` VARCHAR(32) NULL,
+            `checkpoint` LONGTEXT NULL,
+            `last_tick_at` DATETIME NULL,
             PRIMARY KEY (`id`),
             KEY `started_at` (`started_at`),
-            KEY `mode` (`mode`)
+            KEY `mode` (`mode`),
+            KEY `status` (`status`)
         ) {$wpdb->get_charset_collate()};
         ";
 	}

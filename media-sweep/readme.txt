@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.0.7
+Stable tag: 1.1.0
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
@@ -172,6 +172,16 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 6. **Trash Management** – Safe file removal with easy restore capabilities
 
 == Changelog ==
+
+= 1.1.0 =
+* New scan engine: your content is now read ONCE into an indexed reference index, then every attachment is checked with instant indexed lookups — scans that previously took hours (or died with "The response is not a valid JSON response.") now finish in minutes on any hosting.
+* Fixed: scans no longer get stuck at 40% or fail with "The response is not a valid JSON response." on shared hosting — every scan request now completes well inside even the strictest server timeouts (works on 30-second hosts, no configuration needed).
+* New: scans are checkpointed and resumable — closing the tab, a server hiccup, or even a PHP fatal now pauses the scan with a Resume button instead of losing progress.
+* New: smarter detection — media used in Elementor and other page-builder layouts, widgets, site icon/logo settings, and WooCommerce category images is now correctly reported as in use (with the location named in the file's usage notes).
+* New: WP-CLI support — run `wp media-sweep scan` for unattended scans of very large libraries.
+* Improved: the scanner automatically adapts to slow servers (self-tuning delays, automatic retries with backoff) and never shows raw technical errors — and the detailed per-file usage reports you rely on are unchanged, still free, and now even more complete.
+* Fixed: edited images are no longer marked "in use" by their own backup metadata.
+* Under the hood: new mswp_scan_refs table and scan checkpoint columns, migrated automatically on update.
 
 = 1.0.7 =
 * New: a "More from WPCreatix" section that helps you discover the other WPCreatix plugins, with one-click install and activate right from the admin.

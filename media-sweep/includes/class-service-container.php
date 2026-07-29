@@ -8,6 +8,7 @@
 namespace Media_Sweep;
 
 use Media_Sweep\Traits\Singleton;
+use Media_Sweep\Services;
 use Media_Sweep\Services\Database_Installer;
 use Media_Sweep\Interfaces\Database_Installer as Database_Installer_Interface;
 use Media_Sweep\Services\Settings;
@@ -157,6 +158,11 @@ class Service_Container {
 
 		$this->register( 'settings', Settings::class, true );
 		$this->bind( Settings_Interface::class, Settings::class );
+
+		// Reference index services (extraction + storage) and the tick runner.
+		$this->register( 'reference_store', Services\Reference_Store::class, true );
+		$this->register( 'reference_extractor_service', Services\Reference_Extractor_Service::class, true );
+		$this->register( 'scan_runner_service', Services\Scan_Runner_Service::class, true );
 
 		// Register scanner services
 		$this->register( 'media_scanner_service', Media_Scanner_Service::class, true );

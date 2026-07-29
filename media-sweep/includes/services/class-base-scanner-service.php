@@ -33,6 +33,13 @@ abstract class Base_Scanner_Service {
 	protected $system_monitor;
 
 	/**
+	 * Reference store (the per-scan media reference index).
+	 *
+	 * @var Reference_Store
+	 */
+	protected $reference_store;
+
+	/**
 	 * Default scan options (to be overridden by child classes)
 	 *
 	 * @var array
@@ -42,14 +49,20 @@ abstract class Base_Scanner_Service {
 	/**
 	 * Constructor
 	 *
-	 * @param System_Monitor_Service $system_monitor System monitor instance
+	 * @param System_Monitor_Service $system_monitor  System monitor instance
+	 * @param Reference_Store        $reference_store Reference store instance
 	 */
-	public function __construct( System_Monitor_Service $system_monitor ) {
-		$this->system_monitor = $system_monitor;
+	public function __construct( System_Monitor_Service $system_monitor, Reference_Store $reference_store ) {
+		$this->system_monitor  = $system_monitor;
+		$this->reference_store = $reference_store;
 	}
 
 	/**
-	 * Resume an existing media library scan
+	 * Resume an existing scan from its checkpoint.
+	 *
+	 * Resume continues from the persisted cursor with zero rework: existing
+	 * file_scan rows and extracted references are kept (both are idempotent
+	 * under unique keys), so an interrupted scan never restarts at 0%.
 	 *
 	 * @param int $scan_id The scan ID to resume
 	 * @return Scan_Model|false
@@ -63,15 +76,11 @@ abstract class Base_Scanner_Service {
 		// Reset system monitor for resumed scan
 		$this->system_monitor->reset_monitoring();
 
-		// Clear all existing file scan records for this scan
-		$scan->file_scans()->query()->delete();
-
-		// Update scan to running status and reset timestamps
 		$scan->update(
 			array(
-				'status'      => 'running',
-				'started_at'  => current_time( 'mysql' ),
-				'finished_at' => null,
+				'status'       => Scan_Model::STATUS_RUNNING,
+				'finished_at'  => null,
+				'last_tick_at' => current_time( 'mysql' ),
 			)
 		);
 
@@ -129,8 +138,14 @@ abstract class Base_Scanner_Service {
 		$scan->update(
 			array(
 				'finished_at' => current_time( 'mysql' ),
+				'status'      => Scan_Model::STATUS_COMPLETED,
+				'phase'       => Scan_Model::PHASE_DONE,
 			)
 		);
+
+		// The rendered usage notes live in the file_scan rows; the raw
+		// reference index is no longer needed once the scan completes.
+		$this->reference_store->delete_for_scan( $scan_id );
 
 		$scan_results = $this->get_scan_results( $scan_id );
 
@@ -233,6 +248,20 @@ abstract class Base_Scanner_Service {
 					);
 				}
 				return __( 'Used in gallery block', 'media-sweep' );
+
+			case 'option':
+				return sprintf(
+					/* translators: %s is the option/widget name */
+					__( 'Used in site setting or widget: %s', 'media-sweep' ),
+					$extra_info
+				);
+
+			case 'termmeta':
+				return sprintf(
+					/* translators: %s is the term/category name */
+					__( 'Used as image for term/category: %s', 'media-sweep' ),
+					$extra_info
+				);
 
 			case 'theme_plugin':
 				return sprintf(
@@ -360,101 +389,107 @@ abstract class Base_Scanner_Service {
 	 * @return array Array with 'should_continue' boolean and optional 'warning' message
 	 */
 	protected function check_system_resources() {
-		$is_safe = $this->system_monitor->is_safe_to_continue();
-		$warning = $this->system_monitor->get_resource_warning();
-
-		if ( ! $is_safe ) {
-			// Force cleanup if resources are high
-			$cleanup_result = $this->system_monitor->cleanup_memory();
-
-			if ( ! empty( $cleanup_result['freed'] ) && $cleanup_result['freed'] > 0 ) {
-				$warning .= sprintf(
-					/* translators: %s is the amount of memory freed */
-					__( ' Memory cleanup freed %s.', 'media-sweep' ),
-					$cleanup_result['formatted']['freed']
-				);
-
-				// Check again after cleanup
-				$is_safe = $this->system_monitor->is_safe_to_continue();
-			}
-		}
-
 		return array(
-			'should_continue' => $is_safe,
-			'warning'         => $warning,
+			'should_continue' => $this->system_monitor->is_safe_to_continue(),
+			'warning'         => $this->system_monitor->get_resource_warning(),
 			'resources'       => $this->system_monitor->check_system_resources(),
 		);
 	}
 
 	/**
-	 * Get file search patterns for URL and path matching
+	 * Render human-readable usage notes from reference rows - the same
+	 * strings the 1.0.x engine produced, from the structured origins.
 	 *
-	 * @param string $file_path The file path
-	 * @return array Array of search patterns
+	 * @param array $refs Reference rows ({origin, hits}).
+	 * @return string[] Notes, grouped by origin type in a stable order.
 	 */
-	protected function get_file_search_patterns( $file_path ) {
-		$patterns   = array();
-		$upload_dir = wp_upload_dir();
-
-		// Get relative path
-		$relative_path = str_replace( $upload_dir['basedir'] . '/', '', $file_path );
-
-		// Add relative path pattern
-		$patterns[] = $relative_path;
-
-		// Add URL pattern
-		$file_url   = str_replace( $upload_dir['basedir'], $upload_dir['baseurl'], $file_path );
-		$patterns[] = $file_url;
-
-		// Add filename only
-		$filename   = basename( $file_path );
-		$patterns[] = $filename;
-
-		// Add URL without domain for cases where site URL changed
-		$parsed_url = parse_url( $file_url );
-		if ( isset( $parsed_url['path'] ) ) {
-			$patterns[] = $parsed_url['path'];
-		}
-
-		// Remove duplicates
-		return array_unique( array_filter( $patterns ) );
-	}
-
-	/**
-	 * Check if file is used in content (common base implementation)
-	 *
-	 * @param array $search_patterns Search patterns for the file
-	 * @return array Array of notes if used in content
-	 */
-	protected function check_content_usage_by_patterns( $search_patterns ) {
-		global $wpdb;
-		$found_post_ids = array();
-
-		// First, collect all unique post IDs that match any pattern
-		foreach ( $search_patterns as $pattern ) {
-			// Search in post_content
-			$query = "SELECT DISTINCT ID FROM {$wpdb->posts} 
-					  WHERE post_type != 'attachment' 
-					  AND (post_content LIKE %s OR post_excerpt LIKE %s)
-					  AND post_status IN ('publish', 'private', 'draft')";
-
-			$results = $wpdb->get_results( $wpdb->prepare( $query, '%' . $pattern . '%', '%' . $pattern . '%' ) );
-
-			foreach ( $results as $result ) {
-				$found_post_ids[] = $result->ID;
+	public function render_notes_from_refs( $refs ) {
+		// Dedupe origins (one file can match several lookup keys from the
+		// same origin) while accumulating deep-scan hit counts.
+		$origins = array();
+		foreach ( $refs as $ref ) {
+			if ( isset( $origins[ $ref->origin ] ) ) {
+				$origins[ $ref->origin ] += (int) $ref->hits;
+			} else {
+				$origins[ $ref->origin ] = (int) $ref->hits;
 			}
 		}
 
-		// Remove duplicate post IDs
-		$found_post_ids = array_unique( $found_post_ids );
+		// Stable presentation order by origin type.
+		$order = array( 'featured', 'content', 'custom_field', 'gallery_shortcode', 'gallery_block', 'option', 'termmeta', 'table' );
 
-		// Generate notes from unique post IDs
-		$notes = array();
-		foreach ( $found_post_ids as $post_id ) {
-			$notes[] = $this->create_usage_note( 'content', $post_id );
+		$grouped = array_fill_keys( $order, array() );
+		foreach ( $origins as $origin => $hits ) {
+			$type = strtok( $origin, ':' );
+			if ( isset( $grouped[ $type ] ) ) {
+				$grouped[ $type ][ $origin ] = $hits;
+			}
 		}
 
-		return $notes;
+		$notes = array();
+		foreach ( $grouped as $type => $items ) {
+			foreach ( $items as $origin => $hits ) {
+				$note = $this->render_single_note( $type, $origin, $hits );
+				if ( $note ) {
+					$notes[] = $note;
+				}
+			}
+		}
+
+		return array_values( array_unique( $notes ) );
+	}
+
+	/**
+	 * Render one origin into its note string.
+	 *
+	 * @param string $type   Origin type (prefix).
+	 * @param string $origin Full structured origin.
+	 * @param int    $hits   Sightings count (deep-scan notes).
+	 * @return string|null
+	 */
+	protected function render_single_note( $type, $origin, $hits ) {
+		$parts = explode( ':', $origin );
+
+		switch ( $type ) {
+			case 'featured':
+				return $this->create_usage_note( 'featured', (int) $parts[1] );
+
+			case 'content':
+				return $this->create_usage_note( 'content', (int) $parts[1] );
+
+			case 'custom_field':
+				// custom_field:{meta_key}:{post_id} - meta_key may itself
+				// contain colons, so the post ID is the LAST segment.
+				$post_id  = (int) array_pop( $parts );
+				$meta_key = implode( ':', array_slice( $parts, 1 ) );
+				return $this->create_usage_note( 'custom_field', $post_id, $meta_key );
+
+			case 'gallery_shortcode':
+				return $this->create_usage_note( 'gallery_shortcode', (int) $parts[1] );
+
+			case 'gallery_block':
+				return $this->create_usage_note( 'gallery_block', (int) $parts[1] );
+
+			case 'option':
+				$name = implode( ':', array_slice( $parts, 1 ) );
+				return $this->create_usage_note( 'option', 0, $name );
+
+			case 'termmeta':
+				$term_id = (int) array_pop( $parts );
+				$term    = get_term( $term_id );
+				$label   = ( $term && ! is_wp_error( $term ) ) ? $term->name : sprintf( '#%d', $term_id );
+				return $this->create_usage_note( 'termmeta', 0, $label );
+
+			case 'table':
+				// table:{table}.{column}
+				$location = implode( ':', array_slice( $parts, 1 ) );
+				$dot      = strrpos( $location, '.' );
+				$table    = $dot !== false ? substr( $location, 0, $dot ) : $location;
+				$column   = $dot !== false ? substr( $location, $dot + 1 ) : '';
+				return \Media_Sweep\Utils\Database_Query_Helper::create_database_usage_note( $table, $column, $hits, '' );
+		}
+
+		return null;
 	}
 
 	/**

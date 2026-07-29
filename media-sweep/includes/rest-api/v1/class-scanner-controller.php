@@ -11,6 +11,8 @@ use Media_Sweep\REST_API\V1\REST_Controller;
 use Media_Sweep\Interfaces\Media_Scanner;
 use Media_Sweep\Interfaces\Filesystem_Scanner;
 use Media_Sweep\Models\Scan_Model;
+use Media_Sweep\Services\Scan_Runner_Service;
+use Media_Sweep\Utils\Time_Budget;
 use WP_REST_Server;
 use WP_Error;
 use WP_REST_Response;
@@ -36,6 +38,13 @@ class Scanner_Controller extends REST_Controller {
 	protected $filesystem_scanner;
 
 	/**
+	 * Scan runner (tick orchestrator).
+	 *
+	 * @var Scan_Runner_Service
+	 */
+	protected $scan_runner;
+
+	/**
 	 * Base route
 	 *
 	 * @var string
@@ -45,12 +54,14 @@ class Scanner_Controller extends REST_Controller {
 	/**
 	 * Constructor
 	 *
-	 * @param Media_Scanner      $media_scanner      Media scanner service
-	 * @param Filesystem_Scanner $filesystem_scanner Filesystem scanner service
+	 * @param Media_Scanner       $media_scanner      Media scanner service
+	 * @param Filesystem_Scanner  $filesystem_scanner Filesystem scanner service
+	 * @param Scan_Runner_Service $scan_runner        Scan runner service
 	 */
-	public function __construct( Media_Scanner $media_scanner, Filesystem_Scanner $filesystem_scanner ) {
+	public function __construct( Media_Scanner $media_scanner, Filesystem_Scanner $filesystem_scanner, Scan_Runner_Service $scan_runner ) {
 		$this->media_scanner      = $media_scanner;
 		$this->filesystem_scanner = $filesystem_scanner;
+		$this->scan_runner        = $scan_runner;
 	}
 
 	/**
@@ -204,6 +215,63 @@ class Scanner_Controller extends REST_Controller {
 						'required'    => true,
 						'description' => __( 'Array of file paths to process', 'media-sweep' ),
 					),
+				),
+			)
+		);
+
+		// Tick endpoint: one time-budgeted slice of server-side scan work.
+		// The server owns all pagination state; the client just repeats the
+		// call until done. Naturally idempotent - a retried tick simply
+		// continues from the persisted checkpoint.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<scan_id>[\d]+)/tick',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'tick' ),
+					'permission_callback' => array( $this, 'check_private_permission' ),
+					'args'                => array(
+						'scan_id'     => array(
+							'description' => __( 'Scan ID.', 'media-sweep' ),
+							'type'        => 'integer',
+							'required'    => true,
+						),
+						'budget_hint' => array(
+							'description' => __( 'Observed gateway ceiling in seconds; the server shrinks its slice to fit.', 'media-sweep' ),
+							'type'        => 'integer',
+							'required'    => false,
+							'minimum'     => 2,
+							'maximum'     => 60,
+						),
+					),
+				),
+			)
+		);
+
+		// Scan status endpoint: phase/progress/staleness for resume UI.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<scan_id>[\d]+)/status',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'status' ),
+					'permission_callback' => array( $this, 'check_private_permission' ),
+				),
+			)
+		);
+
+		// Preflight endpoint: server self-probe the client uses to pick its
+		// inter-request delay and client-side timeout.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/preflight',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'preflight' ),
+					'permission_callback' => array( $this, 'check_private_permission' ),
 				),
 			)
 		);
@@ -505,6 +573,120 @@ class Scanner_Controller extends REST_Controller {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Run one tick of server-side scan work.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function tick( $request ) {
+		$scan_id = (int) $request->get_param( 'scan_id' );
+
+		$this->clean_output_buffers();
+
+		// A client that watched a previous tick get killed reports how long
+		// it survived; run the next slice comfortably inside that ceiling.
+		$budget_seconds = null;
+		$budget_hint    = (int) $request->get_param( 'budget_hint' );
+		if ( $budget_hint > 0 ) {
+			$budget_seconds = max( 2.0, min( $budget_hint * 0.6, 15.0 ) );
+		}
+
+		$result = $this->scan_runner->run_tick( $scan_id, $budget_seconds );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return new WP_REST_Response( $result, 200 );
+	}
+
+	/**
+	 * Get scan status (phase, progress, staleness) for the resume UI.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function status( $request ) {
+		$scan_id = (int) $request->get_param( 'scan_id' );
+
+		$scan = Scan_Model::find( $scan_id );
+		if ( ! $scan ) {
+			return new WP_Error( 'scan_not_found', __( 'Scan not found.', 'media-sweep' ), array( 'status' => 404 ) );
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $this->scan_runner->get_status( $scan ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Preflight: probe the server so the client can self-tune.
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function preflight( $request ) {
+		global $wpdb;
+
+		// Time one trivial DB roundtrip.
+		$t0 = microtime( true );
+		$wpdb->get_var( 'SELECT 1' );
+		$db_latency_ms = ( microtime( true ) - $t0 ) * 1000;
+
+		$budget = new Time_Budget();
+
+		$profile = 'ready';
+		if ( $db_latency_ms > 750 ) {
+			$profile = 'severely_constrained';
+		} elseif ( $db_latency_ms > 250 ) {
+			$profile = 'constrained';
+		}
+
+		$delay_ms = array(
+			'ready'                => 150,
+			'constrained'          => 500,
+			'severely_constrained' => 1000,
+		);
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => array(
+					'db_latency_ms'      => (int) round( $db_latency_ms ),
+					'time_budget'        => (int) round( $budget->remaining() ),
+					'profile'            => $profile,
+					'delay_ms'           => $delay_ms[ $profile ],
+					// Client-side deadline: comfortably above the server
+					// budget, still below common gateway ceilings.
+					'request_timeout_ms' => 30000,
+					'max_retries'        => 4,
+				),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Flush stray output buffers so PHP notices echoed by other plugins can
+	 * never corrupt our JSON response.
+	 */
+	protected function clean_output_buffers() {
+		while ( ob_get_level() > 0 ) {
+			$content = ob_get_contents();
+			// Only discard buffers containing unexpected output.
+			if ( $content !== '' && $content !== false ) {
+				ob_end_clean();
+			} else {
+				break;
+			}
+		}
 	}
 
 	/**

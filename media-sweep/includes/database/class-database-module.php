@@ -52,7 +52,23 @@ class Database_Module {
 	 */
 	public function install_tables() {
 		$this->installer->install_tables();
+		$this->backfill_scan_statuses();
 		update_option( self::SCHEMA_VERSION_OPTION, MEDIA_SWEEP_VERSION );
+	}
+
+	/**
+	 * Data migration for pre-1.1.0 scans: the status column is new and
+	 * defaults to 'running', but a scan with finished_at set was completed.
+	 * Without this, upgraded sites would show old finished scans as running.
+	 */
+	private function backfill_scan_statuses() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'mswp_scans';
+		$wpdb->query(
+			"UPDATE {$table} SET status = 'completed', phase = 'done'
+			 WHERE finished_at IS NOT NULL AND status = 'running'"
+		); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- trusted table name, no user input.
 	}
 
 	/**

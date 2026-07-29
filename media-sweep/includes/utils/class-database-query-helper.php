@@ -97,7 +97,7 @@ class Database_Query_Helper {
 	 * @param string $file_path   File path or pattern
 	 * @return string Formatted note
 	 */
-	protected static function create_database_usage_note( $table_name, $column_name, $count, $file_path ) {
+	public static function create_database_usage_note( $table_name, $column_name, $count, $file_path ) {
 		global $wpdb;
 
 		// Clean table name (remove prefix for readability)

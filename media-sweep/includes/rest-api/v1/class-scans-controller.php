@@ -9,6 +9,7 @@ namespace Media_Sweep\REST_API\V1;
 
 use Media_Sweep\REST_API\V1\REST_Controller;
 use Media_Sweep\Models\Scan_Model;
+use Media_Sweep\Services\Reference_Store;
 use WP_REST_Server;
 use WP_Error;
 use WP_REST_Request;
@@ -20,11 +21,27 @@ use WP_REST_Response;
 class Scans_Controller extends REST_Controller {
 
 	/**
+	 * Reference store (per-scan media reference index).
+	 *
+	 * @var Reference_Store
+	 */
+	protected $reference_store;
+
+	/**
 	 * Base route
 	 *
 	 * @var string
 	 */
 	protected $rest_base = 'scans';
+
+	/**
+	 * Constructor
+	 *
+	 * @param Reference_Store $reference_store Reference store.
+	 */
+	public function __construct( Reference_Store $reference_store ) {
+		$this->reference_store = $reference_store;
+	}
 
 	/**
 	 * Register routes
@@ -308,6 +325,11 @@ class Scans_Controller extends REST_Controller {
 
 		// Delete related file scans first
 		$scan->file_scans()->query()->delete();
+
+		// Purge the scan's reference index. A completed scan already purged
+		// it at finish; this covers unfinished scans deleted mid-flight,
+		// whose refs would otherwise be orphaned forever.
+		$this->reference_store->delete_for_scan( $id );
 
 		// Delete the scan
 		$result = $scan->delete();

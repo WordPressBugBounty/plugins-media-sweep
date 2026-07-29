@@ -17,6 +17,34 @@ use Media_Sweep\Models\File_Scan_Model;
 class Scan_Model extends Model {
 
 	/**
+	 * Scan lifecycle statuses.
+	 */
+	const STATUS_RUNNING   = 'running';
+	const STATUS_PAUSED    = 'paused';
+	const STATUS_COMPLETED = 'completed';
+	const STATUS_FAILED    = 'failed';
+
+	/**
+	 * Scan phases, in execution order. Extraction phases are shared by both
+	 * scan modes; after extraction a media scan runs 'verdicts' server-side
+	 * while a filesystem scan moves to 'enumerate' (frontend-driven folder
+	 * walk + budgeted file batches).
+	 */
+	const PHASE_EXTRACT_POSTS   = 'extract_posts';
+	const PHASE_EXTRACT_OPTIONS = 'extract_options';
+	const PHASE_EXTRACT_DEEP    = 'extract_deep';
+	const PHASE_VERDICTS        = 'verdicts';
+	const PHASE_ENUMERATE       = 'enumerate';
+	const PHASE_DONE            = 'done';
+
+	/**
+	 * A scan whose last tick is older than this many seconds is considered
+	 * stale: the driving browser tab is gone and the UI should offer Resume
+	 * instead of showing a phantom "In Progress".
+	 */
+	const STALE_AFTER_SECONDS = 120;
+
+	/**
 	 * The table associated with the model.
 	 *
 	 * @var string
@@ -33,6 +61,10 @@ class Scan_Model extends Model {
 		'finished_at',
 		'mode',
 		'options',
+		'status',
+		'phase',
+		'checkpoint',
+		'last_tick_at',
 	);
 
 	/**
@@ -41,9 +73,11 @@ class Scan_Model extends Model {
 	 * @var array
 	 */
 	protected $casts = array(
-		'started_at'  => 'datetime',
-		'finished_at' => 'datetime',
-		'options'     => 'array',
+		'started_at'   => 'datetime',
+		'finished_at'  => 'datetime',
+		'options'      => 'array',
+		'checkpoint'   => 'array',
+		'last_tick_at' => 'datetime',
 	);
 
 	/**

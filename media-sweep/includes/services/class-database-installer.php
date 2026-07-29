@@ -11,6 +11,7 @@ use Media_Sweep\Interfaces\Database_Installer as Database_Installer_Interface;
 use Media_Sweep\Database\Tables\Scans_Table;
 use Media_Sweep\Database\Tables\Files_Table;
 use Media_Sweep\Database\Tables\File_Scan_Table;
+use Media_Sweep\Database\Tables\Scan_Refs_Table;
 
 /**
  * Database installer service.
@@ -32,6 +33,7 @@ class Database_Installer implements Database_Installer_Interface {
 			new Scans_Table(),
 			new Files_Table(),
 			new File_Scan_Table(),
+			new Scan_Refs_Table(),
 		);
 	}
 

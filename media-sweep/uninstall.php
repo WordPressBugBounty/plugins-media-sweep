@@ -42,6 +42,7 @@ function media_sweep_uninstall_cleanup() {
 	// 1. Drop the plugin's custom tables. Names are built from a fixed
 	// suffix plus the trusted site prefix — no user input involved.
 	$tables = array(
+		$wpdb->prefix . 'mswp_scan_refs',
 		$wpdb->prefix . 'mswp_file_scan',
 		$wpdb->prefix . 'mswp_files',
 		$wpdb->prefix . 'mswp_scans',
