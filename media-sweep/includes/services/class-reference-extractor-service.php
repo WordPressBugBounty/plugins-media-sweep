@@ -189,12 +189,16 @@ class Reference_Extractor_Service {
 
 				$budget->run_item(
 					function () use ( $scan_id, $row, $meta ) {
-						// Attachments' own content is their description/caption -
-						// not a usage location (1.0.x parity: content queries
-						// excluded post_type attachment).
-						if ( $row->post_type !== 'attachment' ) {
-							$this->extract_from_content( $scan_id, (int) $row->ID, (string) $row->post_content . ' ' . (string) $row->post_excerpt );
+						// An attachment's own row never counts as usage of itself - neither its content
+						// (description/caption) nor its meta. Optimizers, offloaders, renamers and CDN
+						// plugins write the file's own path or name back onto the attachment (Cloudinary
+						// _public_id, Modula _old_wp_attached_file, Smush wp-smush-pngjpg_savings...),
+						// which otherwise makes every such image vouch for itself and report in use forever.
+						if ( $row->post_type === 'attachment' ) {
+							return;
 						}
+
+						$this->extract_from_content( $scan_id, (int) $row->ID, (string) $row->post_content . ' ' . (string) $row->post_excerpt );
 
 						if ( isset( $meta[ $row->ID ] ) ) {
 							$this->extract_from_meta( $scan_id, (int) $row->ID, $meta[ $row->ID ] );
@@ -430,6 +434,13 @@ class Reference_Extractor_Service {
 	 * @param array $meta_rows Array of {meta_key, meta_value}.
 	 */
 	protected function extract_from_meta( $scan_id, $post_id, $meta_rows ) {
+		/**
+		 * Filter the meta keys that never count as a usage reference.
+		 *
+		 * @param string[] $keys Meta keys to skip.
+		 */
+		$excluded_keys = apply_filters( 'media_sweep_excluded_meta_keys', $this->excluded_meta_keys );
+
 		foreach ( $meta_rows as $meta ) {
 			$key   = $meta->meta_key;
 			$value = (string) $meta->meta_value;
@@ -441,7 +452,7 @@ class Reference_Extractor_Service {
 				continue;
 			}
 
-			if ( in_array( $key, $this->excluded_meta_keys, true ) || $value === '' ) {
+			if ( in_array( $key, $excluded_keys, true ) || $value === '' ) {
 				continue;
 			}
 
@@ -589,6 +600,10 @@ class Reference_Extractor_Service {
 				continue;
 			}
 
+			if ( $this->is_structurally_excluded_table( $clean ) ) {
+				continue;
+			}
+
 			$table_columns = $wpdb->get_results( "DESCRIBE `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			foreach ( $table_columns as $col ) {
 				if ( preg_match( '/text|varchar|char/i', $col->Type ) ) {
@@ -597,6 +612,36 @@ class Reference_Extractor_Service {
 			}
 		}
 
-		return $columns;
+		/**
+		 * Filter the deep-scan work list.
+		 *
+		 * @param array[] $columns List of [table, column] pairs.
+		 */
+		return apply_filters( 'media_sweep_deep_scan_columns', $columns );
+	}
+
+	/**
+	 * Tables that must never be read, for reasons no plugin-name list can express.
+	 *
+	 * @param string $clean Table name without the site prefix.
+	 * @return bool
+	 */
+	protected function is_structurally_excluded_table( $clean ) {
+		// A staging clone duplicates posts/postmeta under a second prefix inside the same database. Reading
+		// it resurrects every media URL from a months-old snapshot of the site.
+		if ( preg_match( '/^wpstg\d+_/i', $clean )
+			|| preg_match( '/^temp_/i', $clean )
+			|| preg_match( '/^wpvivid_test_tables_/i', $clean ) ) {
+			return true;
+		}
+
+		// Tables created on base_prefix, so on a multisite they are shared network-wide rather than
+		// belonging to the site being scanned.
+		if ( in_array( $clean, array( 'w3tc_cdn_queue', 'w3tc_cdn_pathmap', 'yoast_expiring_store' ), true )
+			|| strpos( $clean, 'duplicator_pro_' ) === 0 ) {
+			return true;
+		}
+
+		return false;
 	}
 }

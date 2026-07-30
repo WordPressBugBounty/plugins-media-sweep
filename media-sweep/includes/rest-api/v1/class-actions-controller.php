@@ -118,6 +118,11 @@ class Actions_Controller extends REST_Controller {
 							'minimum'     => 1,
 							'maximum'     => 50,
 						),
+						'force'         => array(
+							'description' => __( 'Delete files reported as in use. Requires explicit per-file confirmation in the UI.', 'media-sweep' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
 					),
 				),
 			)
@@ -229,6 +234,7 @@ class Actions_Controller extends REST_Controller {
 		$file_scan_ids = $request->get_param( 'file_scan_ids' );
 		$start_index   = $request->get_param( 'start_index' );
 		$batch_size    = $request->get_param( 'batch_size' );
+		$force         = (bool) $request->get_param( 'force' );
 
 		// Validate file_scan_ids
 		if ( empty( $file_scan_ids ) || ! is_array( $file_scan_ids ) ) {
@@ -240,7 +246,9 @@ class Actions_Controller extends REST_Controller {
 		}
 
 		try {
-			$result = $this->action_service->process_batch( $action, $file_scan_ids, $start_index, $batch_size );
+			// Force only ever applies to explicitly listed IDs: file_scan_ids is required, so a filter-wide
+			// "move all" cannot inherit it.
+			$result = $this->action_service->process_batch( $action, $file_scan_ids, $start_index, $batch_size, $force );
 
 			return new WP_REST_Response( $result, 200 );
 

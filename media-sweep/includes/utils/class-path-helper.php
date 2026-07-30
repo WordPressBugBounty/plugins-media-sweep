@@ -49,6 +49,11 @@ class Path_Helper {
 		$base_dir      = str_replace( '\\', '/', $base_dir );
 		$relative_path = str_replace( '\\', '/', $relative_path );
 
+		// Never prefix a path already inside uploads; that produced /uploads/C:/site/uploads/... which resolves to nothing.
+		if ( '' !== $base_dir && strpos( $relative_path, $base_dir ) === 0 ) {
+			return $relative_path;
+		}
+
 		// Remove leading slash if present
 		$relative_path = ltrim( $relative_path, '/' );
 
@@ -85,12 +90,31 @@ class Path_Helper {
 	/**
 	 * Check if a path is relative to uploads directory
 	 *
+	 * Absolute means: leading slash, drive letter with either separator (C:/ and C:\), UNC prefix, or already inside the uploads directory.
+	 *
 	 * @param string $path File path to check
 	 * @return bool True if path is relative, false if absolute
 	 */
 	public static function is_relative_path( $path ) {
-		// Check if path contains drive letters (Windows) or starts with / (Unix)
-		return ! ( preg_match( '/^[a-zA-Z]:\\\|^\//', $path ) );
+		if ( ! is_string( $path ) || '' === $path ) {
+			return true;
+		}
+
+		$normalized = self::normalize_path( $path );
+
+		// Unix absolute, Windows drive letter (either separator), or UNC path.
+		if ( preg_match( '#^(/|[a-zA-Z]:/|//)#', $normalized ) ) {
+			return false;
+		}
+
+		// Already prefixed with the uploads directory.
+		$upload_dir = wp_upload_dir();
+		$base_dir   = self::normalize_path( $upload_dir['basedir'] );
+		if ( '' !== $base_dir && strpos( $normalized, $base_dir ) === 0 ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

@@ -25,6 +25,7 @@ use Media_Sweep\Models\Scan_Model;
 use Media_Sweep\Models\File_Scan_Model;
 use Media_Sweep\Utils\Time_Budget;
 use Media_Sweep\Utils\Url_Normalizer;
+use Media_Sweep\Utils\Database_Query_Helper;
 
 /**
  * Media Scanner Service class
@@ -209,11 +210,7 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 				$checkpoint['att_cursor'] = $attachment_id;
 				++$checkpoint['att_done'];
 
-				// Persist the cursor as we go. If this request is killed
-				// (gateway timeout, fatal, closed connection) the rows already
-				// written must not sit behind a stale cursor, or the next tick
-				// re-verdicts them - which is exactly how a resumed scan ends
-				// up re-processing work it already did.
+				// Persist as we go, so a killed request never leaves written rows behind a stale cursor.
 				if ( microtime( true ) - $last_save >= 2.0 ) {
 					$this->persist_checkpoint( $scan_id, $checkpoint );
 					$last_save = microtime( true );
@@ -268,9 +265,7 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 			return false;
 		}
 
-		// Track file IDs written for this attachment: several registered image
-		// sizes can share identical dimensions and therefore the same physical
-		// file, so the same file_id can come up more than once.
+		// Sizes registered at identical dimensions share one generated file, so the same file_id can recur.
 		$written = array( (int) $file->id => true );
 
 		$this->record_file_scan( $scan_id, $file->id, $status, $notes );
@@ -428,18 +423,105 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 			$refs = $this->filter_refs_by_options( $refs, $options );
 		}
 
-		if ( ! empty( $refs ) ) {
+		// Split what decides the verdict from what is merely recorded elsewhere. Both are reported; only the
+		// first sets "in use".
+		list( $deciding, $mentions ) = $this->partition_refs_by_evidence( $refs );
+
+		if ( ! empty( $deciding ) ) {
 			return array(
 				'status' => 'in_use',
-				'notes'  => $this->render_notes_from_refs( $refs ),
+				'notes'  => array_merge(
+					$this->render_notes_from_refs( $deciding ),
+					$this->render_mention_notes( $mentions )
+				),
 			);
 		}
 
-		$notes[] = __( 'No usage found in database', 'media-sweep' );
+		$notes = $this->render_mention_notes( $mentions );
+		$notes[] = __( 'No usage found', 'media-sweep' );
+
 		return array(
 			'status' => 'unused',
 			'notes'  => $notes,
 		);
+	}
+
+	/**
+	 * Split reference rows into those that may decide "in use" and those that are only worth reporting.
+	 *
+	 * Everything found in the site's own content decides: posts, custom fields, options, term meta,
+	 * galleries, featured images. A hit inside another plugin's table only decides when that table holds
+	 * content a visitor sees - see Database_Query_Helper::table_evidence().
+	 *
+	 * @param array $refs Reference rows.
+	 * @return array[] [ $deciding, $mentions ].
+	 */
+	protected function partition_refs_by_evidence( $refs ) {
+		global $wpdb;
+
+		$deciding = array();
+		$mentions = array();
+		$prefix   = '/^' . preg_quote( $wpdb->prefix, '/' ) . '/';
+
+		foreach ( $refs as $ref ) {
+			if ( strpos( $ref->origin, 'table:' ) !== 0 ) {
+				$deciding[] = $ref;
+				continue;
+			}
+
+			$location = substr( $ref->origin, strlen( 'table:' ) );
+			$dot      = strrpos( $location, '.' );
+			$table    = false !== $dot ? substr( $location, 0, $dot ) : $location;
+			$column   = false !== $dot ? substr( $location, $dot + 1 ) : '';
+			$clean    = preg_replace( $prefix, '', $table, 1 );
+
+			if ( Database_Query_Helper::EVIDENCE_USAGE === Database_Query_Helper::table_evidence( $clean, $column ) ) {
+				$deciding[] = $ref;
+			} else {
+				$mentions[] = $ref;
+			}
+		}
+
+		return array( $deciding, $mentions );
+	}
+
+	/**
+	 * Render bookkeeping matches as clearly non-deciding notes.
+	 *
+	 * @param array $mentions Reference rows.
+	 * @return string[]
+	 */
+	protected function render_mention_notes( $mentions ) {
+		if ( empty( $mentions ) ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		// Accumulate hits per origin, as render_notes_from_refs() does: one file can match several lookup
+		// keys from the same column.
+		$origins = array();
+		foreach ( $mentions as $ref ) {
+			if ( isset( $origins[ $ref->origin ] ) ) {
+				$origins[ $ref->origin ] += (int) $ref->hits;
+			} else {
+				$origins[ $ref->origin ] = (int) $ref->hits;
+			}
+		}
+
+		$notes = array();
+		foreach ( $origins as $origin => $hits ) {
+			// Mentions only ever come from table: origins (see partition_refs_by_evidence()).
+			$location = substr( $origin, strlen( 'table:' ) );
+			$dot      = strrpos( $location, '.' );
+			$table    = false !== $dot ? substr( $location, 0, $dot ) : $location;
+			$column   = false !== $dot ? substr( $location, $dot + 1 ) : '';
+			$clean    = preg_replace( '/^' . preg_quote( $wpdb->prefix, '/' ) . '/', '', $table, 1 );
+
+			$notes[] = Database_Query_Helper::create_database_mention_note( $clean, $column, $hits );
+		}
+
+		return array_values( array_unique( $notes ) );
 	}
 
 	/**

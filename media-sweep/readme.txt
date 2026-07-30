@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
@@ -172,6 +172,21 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 6. **Trash Management** – Safe file removal with easy restore capabilities
 
 == Changelog ==
+
+= 1.1.2 =
+* New: you can now delete a file even when it is reported as in use. The confirmation shows where it was found so you can judge for yourself, and the file goes to Trash like any other, so you can restore it if you change your mind.
+* Fixed: files were wrongly reported as in use because other plugins keep their own record of every file on your site. Image optimizers, security scanners, backup tools and caching plugins all do this. Those records are still shown in the file's notes, but they no longer count as usage on their own.
+* Fixed: an image could report itself as in use, because some optimizer, CDN and rename plugins store the image's own file name back onto it.
+* Fixed: a successful bulk clean-up used to report large numbers of "errors". Thumbnails are removed together with the media file they belong to, and each one was then counted as a failure. They are now reported as already handled, and the summary explains what happened.
+* Fixed: the summary after a bulk action closed instantly, and clearing a whole page of results showed "no files found" instead of the remaining files. The summary now stays open with a link to the Trash, and the list moves back to the last page that still has results.
+* New: the Trash screen now shows a thumbnail of each image instead of a generic file icon, so you can see what you are about to restore or delete.
+* Fixed: the Trash folder's access protection is now re-applied to sites that already had a trash folder, and is written in a form that Apache 2.4 and IIS also understand.
+* Safer cleanup: a file that has changed since the scan ran is now skipped instead of removed, with a message telling you to run a new scan first. Deleting from an old scan can no longer remove a file that has been replaced or put back into use.
+* New: scan results older than a week now carry a clear warning that they may be out of date, so nothing gets deleted based on a stale list.
+* Fixed: starting a new scan could land you on an old interrupted scan with no way past it. New scans always start fresh, and an interrupted scan is only offered when it is genuinely still running (or from the Resume button on the scans list).
+* Fixed: restoring or permanently deleting a file from the Trash could fail on some servers, and the Trash screen showed a full server path instead of the folder name.
+* Fixed: permanently deleting a file from the Trash now clears it from your file records instead of leaving it listed as recoverable.
+* Fixed: a failed restore showed a raw technical message; it now explains the problem in plain language.
 
 = 1.1.1 =
 * Fixed: on sites where several registered image sizes share the same dimensions (common with WooCommerce, Getwid, Robo Gallery and similar plugins), the scan tried to record the same file twice and the resulting database notices broke the scan with "Your server interrupted the scan". Each file is now recorded once, and writing a file result is fully repeat-safe.

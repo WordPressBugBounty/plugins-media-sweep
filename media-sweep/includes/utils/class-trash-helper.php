@@ -22,6 +22,20 @@ class Trash_Helper {
 	const TRASH_FOLDER = 'mswp-trash';
 
 	/**
+	 * Protection-file revision. Bump to rewrite the guards on existing installs.
+	 *
+	 * @var int
+	 */
+	const PROTECTION_VERSION = 2;
+
+	/**
+	 * Option storing the protection revision already written to disk.
+	 *
+	 * @var string
+	 */
+	const PROTECTION_OPTION = 'mswp_trash_protection_version';
+
+	/**
 	 * Get the trash directory path
 	 *
 	 * @return string Absolute path to trash directory
@@ -32,6 +46,18 @@ class Trash_Helper {
 	}
 
 	/**
+	 * Whether a filename is one of the guards we write into the trash folder.
+	 *
+	 * These are ours, not the user's: they must never be listed, counted, restored or deleted.
+	 *
+	 * @param string $filename Base filename.
+	 * @return bool
+	 */
+	public static function is_protection_file( $filename ) {
+		return in_array( $filename, array( '.htaccess', 'index.php', 'web.config' ), true );
+	}
+
+	/**
 	 * Ensure trash directory exists with proper protection
 	 *
 	 * @return bool True if directory exists or was created successfully
@@ -39,14 +65,13 @@ class Trash_Helper {
 	public static function ensure_trash_directory_exists() {
 		$trash_dir = self::get_trash_directory();
 
-		if ( ! file_exists( $trash_dir ) ) {
-			if ( ! wp_mkdir_p( $trash_dir ) ) {
-				return false;
-			}
-
-			// Add protection files only to the root trash directory
-			self::create_trash_protection( $trash_dir );
+		if ( ! file_exists( $trash_dir ) && ! wp_mkdir_p( $trash_dir ) ) {
+			return false;
 		}
+
+		// Runs on every call, not only at creation: installs made before the guards were corrected still
+		// carry the old ones, and re-checking is a cheap option read.
+		self::create_trash_protection( $trash_dir );
 
 		return true;
 	}
@@ -57,31 +82,63 @@ class Trash_Helper {
 	 * @param string $directory Directory to protect
 	 */
 	protected static function create_trash_protection( $directory ) {
-		// Create .htaccess file
-		$htaccess_file = trailingslashit( $directory ) . '.htaccess';
-		if ( ! file_exists( $htaccess_file ) ) {
-			$htaccess_content  = "# Media Sweep Trash Protection\n";
-			$htaccess_content .= "# Deny direct access to all files in trash\n";
-			$htaccess_content .= "Order deny,allow\n";
-			$htaccess_content .= "Deny from all\n";
-			$htaccess_content .= "\n";
-			$htaccess_content .= "# Allow only authorized access\n";
-			$htaccess_content .= "<Files \"index.php\">\n";
-			$htaccess_content .= "    Allow from all\n";
-			$htaccess_content .= "</Files>\n";
+		static $checked = false;
 
-			file_put_contents( $htaccess_file, $htaccess_content );
+		if ( $checked ) {
+			return;
+		}
+		$checked = true;
+
+		$directory = trailingslashit( $directory );
+
+		if ( (int) get_option( self::PROTECTION_OPTION, 0 ) === self::PROTECTION_VERSION
+			&& file_exists( $directory . '.htaccess' ) ) {
+			return;
 		}
 
-		// Create index.php file to prevent directory browsing
-		$index_file = trailingslashit( $directory ) . 'index.php';
-		if ( ! file_exists( $index_file ) ) {
-			$index_content  = "<?php\n";
-			$index_content .= "// Media Sweep Trash Directory\n";
-			$index_content .= "// Silence is golden.\n";
-			$index_content .= "exit;\n";
+		// Hosts vary: uploads can be read-only, on read-only infrastructure, or hardened against dropping
+		// files. Writing anyway would emit PHP warnings on every trash action, so an unwritable directory
+		// is left alone and retried on a later request rather than recorded as done.
+		if ( ! wp_is_writable( $directory ) ) {
+			return;
+		}
 
-			file_put_contents( $index_file, $index_content );
+		// "Order deny,allow" is Apache 2.2 syntax. Apache 2.4 only honours it when mod_access_compat is
+		// loaded, which many builds omit, so the previous guard silently allowed public downloads. Both
+		// forms are emitted, each behind the module test that selects it.
+		$htaccess  = "# Media Sweep Trash Protection\n";
+		$htaccess .= "# Deny direct access to every file in the trash folder.\n";
+		$htaccess .= "<IfModule mod_authz_core.c>\n";
+		$htaccess .= "    Require all denied\n";
+		$htaccess .= "</IfModule>\n";
+		$htaccess .= "<IfModule !mod_authz_core.c>\n";
+		$htaccess .= "    Order deny,allow\n";
+		$htaccess .= "    Deny from all\n";
+		$htaccess .= "</IfModule>\n";
+
+		$written = Filesystem_Helper::put_contents( $directory . '.htaccess', $htaccess );
+
+		// IIS reads neither .htaccess nor nginx config.
+		$web_config  = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+		$web_config .= "<configuration>\n";
+		$web_config .= "    <system.webServer>\n";
+		$web_config .= "        <authorization>\n";
+		$web_config .= "            <deny users=\"*\" />\n";
+		$web_config .= "        </authorization>\n";
+		$web_config .= "    </system.webServer>\n";
+		$web_config .= "</configuration>\n";
+
+		Filesystem_Helper::put_contents( $directory . 'web.config', $web_config );
+
+		// Directory-listing guard for servers that honour neither file above.
+		$index_file = $directory . 'index.php';
+		if ( ! file_exists( $index_file ) ) {
+			Filesystem_Helper::put_contents( $index_file, "<?php\n// Silence is golden.\n" );
+		}
+
+		// Only record success, so a partial write is retried instead of being treated as complete.
+		if ( $written ) {
+			update_option( self::PROTECTION_OPTION, self::PROTECTION_VERSION, false );
 		}
 	}
 
@@ -144,7 +201,7 @@ class Trash_Helper {
 		}
 
 		// Move the file (overwrite if exists)
-		if ( rename( $file_path, $target_path ) ) {
+		if ( Filesystem_Helper::move( $file_path, $target_path ) ) {
 			$result['success']  = true;
 			$result['new_path'] = $target_path;
 		} else {
@@ -173,20 +230,19 @@ class Trash_Helper {
 			'error'        => '',
 		);
 
-		// Ensure it's complete path
-		// Add trash folder to the path if it's not there
-		if ( ! strpos( $trash_file_path, self::TRASH_FOLDER ) ) {
+		// Compare to false: a path already starting with the trash folder matches at 0, and a truthiness test prefixed it twice.
+		if ( false === strpos( $trash_file_path, self::TRASH_FOLDER ) ) {
 			$trash_file_path = trailingslashit( self::get_trash_directory() ) . $trash_file_path;
 		}
 		$trash_file_path = Path_Helper::ensure_absolute_path( $trash_file_path );
 
 		// Validate trash file exists
 		if ( ! file_exists( $trash_file_path ) ) {
-			$result['error'] = wp_json_encode( array(
-				'message' => __( 'Trash file does not exist', 'media-sweep' ),
-				'file_path' => $trash_file_path,
-				'trash_file_path' => $trash_file_path,
-			) );
+			$result['error'] = sprintf(
+				/* translators: %s is the file name */
+				__( 'This file is no longer in the trash folder: %s', 'media-sweep' ),
+				basename( $trash_file_path )
+			);
 			return $result;
 		}
 
@@ -214,7 +270,7 @@ class Trash_Helper {
 		}
 
 		// Move the file back
-		if ( rename( $trash_file_path, $restore_path ) ) {
+		if ( Filesystem_Helper::move( $trash_file_path, $restore_path ) ) {
 			$result['success']      = true;
 			$result['restore_path'] = $restore_path;
 		} else {
@@ -346,12 +402,12 @@ class Trash_Helper {
 			foreach ( $iterator as $file ) {
 				// Skip protection files (.htaccess, index.php)
 				$filename = $file->getFilename();
-				if ( in_array( $filename, array( '.htaccess', 'index.php' ) ) ) {
+				if ( self::is_protection_file( $filename ) ) {
 					continue;
 				}
 
 				if ( $file->isFile() && $file->getMTime() < $cutoff_time ) {
-					if ( unlink( $file->getPathname() ) ) {
+					if ( Filesystem_Helper::delete( $file->getPathname() ) ) {
 						++$result['deleted_count'];
 					} else {
 						$result['errors'][] = sprintf(
@@ -397,7 +453,7 @@ class Trash_Helper {
 					$filename = $file->getFilename();
 
 					// Skip protection files
-					if ( in_array( $filename, array( '.htaccess', 'index.php' ) ) ) {
+					if ( self::is_protection_file( $filename ) ) {
 						continue;
 					}
 

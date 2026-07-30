@@ -9,6 +9,8 @@ namespace Media_Sweep\REST_API\V1;
 
 use Media_Sweep\REST_API\V1\REST_Controller;
 use Media_Sweep\Services\Trash_Service;
+use Media_Sweep\Utils\Trash_Helper;
+use Media_Sweep\Utils\Filesystem_Helper;
 use WP_REST_Server;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -88,6 +90,28 @@ class Trash_Controller extends REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'restore_trash_file' ),
+					'permission_callback' => array( $this, 'check_private_permission' ),
+					'args'                => array(
+						'file_id' => array(
+							'description' => __( 'File ID (MD5 hash of relative path).', 'media-sweep' ),
+							'type'        => 'string',
+							'required'    => true,
+						),
+					),
+				),
+			)
+		);
+
+		// Stream an image preview. The trash folder is deliberately not web-readable, and on nginx no
+		// dropped-in config file can make it so, therefore previews are served through the REST API where
+		// the same capability check applies on every server.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/files/(?P<file_id>[a-zA-Z0-9]+)/preview',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_trash_file_preview' ),
 					'permission_callback' => array( $this, 'check_private_permission' ),
 					'args'                => array(
 						'file_id' => array(
@@ -197,6 +221,72 @@ class Trash_Controller extends REST_Controller {
 				array( 'status' => 500 )
 			);
 		}
+	}
+
+	/**
+	 * Stream a trashed image so the trash list can show a real thumbnail.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_Error|void Exits on success.
+	 */
+	public function get_trash_file_preview( $request ) {
+		$file_info = $this->find_file_by_id( $request->get_param( 'file_id' ) );
+
+		if ( ! $file_info || 'image' !== $file_info['file_type'] ) {
+			return new WP_Error(
+				'preview_not_available',
+				__( 'No preview is available for this file.', 'media-sweep' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		// Containment check against the resolved path so no symlink or traversal can read outside the
+		// trash folder, whatever the ID claims.
+		$real_file  = realpath( $file_info['absolute_path'] );
+		$real_trash = realpath( Trash_Helper::get_trash_directory() );
+
+		if ( ! $real_file || ! $real_trash
+			|| strpos( wp_normalize_path( $real_file ), trailingslashit( wp_normalize_path( $real_trash ) ) ) !== 0 ) {
+			return new WP_Error(
+				'preview_not_available',
+				__( 'No preview is available for this file.', 'media-sweep' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$mime = wp_check_filetype( $real_file );
+		if ( empty( $mime['type'] ) || strpos( $mime['type'], 'image/' ) !== 0 ) {
+			return new WP_Error(
+				'preview_not_available',
+				__( 'No preview is available for this file.', 'media-sweep' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$bytes = Filesystem_Helper::get_contents( $real_file );
+
+		if ( false === $bytes ) {
+			return new WP_Error(
+				'preview_not_available',
+				__( 'No preview is available for this file.', 'media-sweep' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		// Anything another plugin printed during this request is still buffered; flushing it would prepend
+		// text to the image bytes and corrupt it, so it is discarded rather than sent.
+		while ( ob_get_level() > 0 ) {
+			ob_end_clean();
+		}
+
+		header( 'Content-Type: ' . $mime['type'] );
+		header( 'Content-Length: ' . strlen( $bytes ) );
+		header( 'Content-Disposition: inline; filename="' . rawurlencode( $file_info['filename'] ) . '"' );
+		header( 'X-Content-Type-Options: nosniff' );
+		header( 'Cache-Control: private, max-age=300' );
+
+		echo $bytes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- raw image bytes.
+		exit;
 	}
 
 	/**

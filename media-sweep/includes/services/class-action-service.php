@@ -61,9 +61,10 @@ class Action_Service {
 	 * @param array  $file_scan_ids  Array of file scan IDs to process
 	 * @param int    $start_index    Start index for this batch
 	 * @param int    $batch_size     Number of files to process in this batch
+	 * @param bool   $force          Delete despite an "in use" verdict (explicit admin override).
 	 * @return array
 	 */
-	public function process_batch( $action, $file_scan_ids, $start_index = 0, $batch_size = 10 ) {
+	public function process_batch( $action, $file_scan_ids, $start_index = 0, $batch_size = 10, $force = false ) {
 		// Reset system monitor
 		$this->system_monitor->reset_monitoring();
 
@@ -75,6 +76,9 @@ class Action_Service {
 			'success_count' => 0,
 			'errors'        => 0,
 			'skipped'       => 0,
+			// Of the skipped, how many were left alone purely because they are reported as in use. The UI
+			// words its own message from this, so nothing English is sent from here.
+			'skipped_in_use' => 0,
 			'should_pause'  => false,
 			'pause_reason'  => '',
 			'is_complete'   => false,
@@ -97,17 +101,14 @@ class Action_Service {
 		foreach ( $batch_ids as $index => $file_scan_id ) {
 			$current_index = $start_index + $index;
 
-			// Get file scan record
+			// Row already gone: the work was done, not failed. Deleting a media file destroys its
+			// thumbnails and purges their rows, and a bulk run always contains those thumbnails, so
+			// counting them as errors reported a completely successful cleanup as mostly broken.
 			$file_scan = File_Scan_Model::find( $file_scan_id );
 			if ( ! $file_scan ) {
-				++$result['errors'];
+				++$result['skipped'];
 				++$result['processed'];
-				$result['resume_index']    = $current_index + 1;
-				$result['error_details'][] = sprintf(
-					/* translators: %d is the file scan ID */
-					__( 'File scan ID %d not found', 'media-sweep' ),
-					$file_scan_id
-				);
+				$result['resume_index'] = $current_index + 1;
 				continue;
 			}
 
@@ -115,25 +116,24 @@ class Action_Service {
 			$file_scan->load( array( 'file' => array( 'columns' => array( '*' ) ) ) );
 			$file = $file_scan->file;
 
+			// Same reasoning: the file record is gone because it was already dealt with.
 			if ( ! $file ) {
-				++$result['errors'];
+				++$result['skipped'];
 				++$result['processed'];
-				$result['resume_index']    = $current_index + 1;
-				$result['error_details'][] = sprintf(
-					/* translators: %d is the file scan ID */
-					__( 'File record not found for scan ID %d', 'media-sweep' ),
-					$file_scan_id
-				);
+				$result['resume_index'] = $current_index + 1;
 				continue;
 			}
 
 			// Process the file based on action type
-			$process_result = $this->process_single_file( $action, $file, $file_scan );
+			$process_result = $this->process_single_file( $action, $file, $file_scan, $force );
 
 			if ( $process_result['success'] ) {
 				++$result['success_count'];
 			} elseif ( $process_result['skipped'] ) {
 				++$result['skipped'];
+				if ( isset( $process_result['reason'] ) && 'in_use' === $process_result['reason'] ) {
+					++$result['skipped_in_use'];
+				}
 			} else {
 				++$result['errors'];
 				$result['error_details'][] = $process_result['error'];
@@ -167,9 +167,10 @@ class Action_Service {
 	 * @param string          $action_type Action type
 	 * @param File_Model      $file        File model
 	 * @param File_Scan_Model $file_scan   File scan model
+	 * @param bool            $force       Delete despite an "in use" verdict.
 	 * @return array
 	 */
-	protected function process_single_file( $action_type, $file, $file_scan ) {
+	protected function process_single_file( $action_type, $file, $file_scan, $force = false ) {
 		$result = array(
 			'success' => false,
 			'skipped' => false,
@@ -178,7 +179,7 @@ class Action_Service {
 
 		try {
 			if ( 'delete' === $action_type ) {
-				return $this->delete_file( $file, $file_scan );
+				return $this->delete_file( $file, $file_scan, $force );
 			} elseif ( 'restore' === $action_type ) {
 				return $this->restore_file( $file, $file_scan );
 			}
@@ -206,9 +207,10 @@ class Action_Service {
 	 *
 	 * @param File_Model      $file      File model
 	 * @param File_Scan_Model $file_scan File scan model
+	 * @param bool            $force     Delete despite an "in use" verdict.
 	 * @return array
 	 */
-	protected function delete_file( $file, $file_scan ) {
+	protected function delete_file( $file, $file_scan, $force = false ) {
 		$result = array(
 			'success' => false,
 			'skipped' => false,
@@ -216,19 +218,21 @@ class Action_Service {
 		);
 
 		// Skip if file is already processed (trashed or deleted)
-		if ( in_array( $file->status, array( 'trashed', 'deleted' ) ) ) {
+		if ( in_array( $file->status, array( 'trashed', 'deleted' ), true ) ) {
 			$result['skipped'] = true;
 			return $result;
 		}
 
-		// Only allow deletion of certain file scan statuses
+		// A scan verdict is a judgement, not a fact: detection cannot see usage that lives in theme code, a
+		// builder template or an external site, and other plugins' bookkeeping can make a file look used. The
+		// admin knows their own site, so they may override this - deliberately, per file, and the file still
+		// goes to trash so a wrong call stays recoverable.
 		$deletable_statuses = array( 'not_in_media', 'orphaned', 'unused' );
-		if ( ! in_array( $file_scan->status, $deletable_statuses ) ) {
-			$result['error'] = sprintf(
-				/* translators: %s is the file status */
-				__( 'Cannot delete file with status "%s". Only files with status "not_in_media", "orphaned", or "unused" can be deleted.', 'media-sweep' ),
-				$file_scan->status
-			);
+		if ( ! $force && ! in_array( $file_scan->status, $deletable_statuses, true ) ) {
+			// Passed over, not failed. A bulk run across a whole scan can meet hundreds of these, and
+			// reporting each as an error made a correct, protective outcome look like a mass failure.
+			$result['skipped'] = true;
+			$result['reason']  = 'in_use';
 			return $result;
 		}
 
@@ -245,6 +249,23 @@ class Action_Service {
 		// Skip if file is already in trash
 		if ( Trash_Helper::is_trash_path( $file_path ) ) {
 			$result['skipped'] = true;
+			return $result;
+		}
+
+		// Refuse to act on a file that changed since it was scanned. Deleting from an old scan is otherwise
+		// dangerous: the verdict describes the file as it was then, and the file at this path may now be in use.
+		// Deliberately NOT overridable by $force: that overrides a judgement ("we think this is used"), while
+		// this is a fact ("this is not the file that was scanned"). The admin cannot have consented to removing
+		// a file they never saw.
+		$scanned_size = null === $file->size_bytes ? null : (int) $file->size_bytes;
+		$current_size = filesize( $file_path );
+
+		if ( null !== $scanned_size && $scanned_size > 0 && false !== $current_size && $current_size !== $scanned_size ) {
+			$result['error'] = sprintf(
+				/* translators: %s is the file name */
+				__( 'Skipped "%s": the file has changed since this scan ran, so its result may be out of date. Run a new scan before removing it.', 'media-sweep' ),
+				basename( $file_path )
+			);
 			return $result;
 		}
 

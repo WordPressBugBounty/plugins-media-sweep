@@ -13,6 +13,20 @@ namespace Media_Sweep\Utils;
 class Database_Query_Helper {
 
 	/**
+	 * A match here can decide that a file is in use.
+	 *
+	 * @var string
+	 */
+	const EVIDENCE_USAGE = 'usage';
+
+	/**
+	 * A match here records that a file exists; it is shown but never decides status.
+	 *
+	 * @var string
+	 */
+	const EVIDENCE_BOOKKEEPING = 'bookkeeping';
+
+	/**
 	 * Perform deep scan for file usage in all database tables
 	 *
 	 * @param array $search_patterns Search patterns to look for
@@ -128,196 +142,329 @@ class Database_Query_Helper {
 	}
 
 	/**
+	 * Note for a match that is reported but does not decide status.
+	 *
+	 * @param string $table_name  Table name without the site prefix.
+	 * @param string $column_name Column name.
+	 * @param int    $count       Number of occurrences.
+	 * @return string Formatted note.
+	 */
+	public static function create_database_mention_note( $table_name, $column_name, $count ) {
+		$table_info = self::identify_table_source( $table_name );
+
+		if ( $table_info ) {
+			return sprintf(
+				/* translators: %1$d is the count, %2$s is the plugin name, %3$s is the table name, %4$s is the column name, %5$s is the data description */
+				__( 'Also mentioned %1$d time(s) in %2$s table %3$s.%4$s (%5$s) - this records the file, it does not display it, so it is not counted as usage', 'media-sweep' ),
+				$count,
+				$table_info['source'],
+				$table_name,
+				$column_name,
+				$table_info['description']
+			);
+		}
+
+		return sprintf(
+			/* translators: %1$d is the count, %2$s is the table name, %3$s is the column name */
+			__( 'Also mentioned %1$d time(s) in database table %2$s.%3$s - not counted as usage', 'media-sweep' ),
+			$count,
+			$table_name,
+			$column_name
+		);
+	}
+
+	/**
 	 * Try to identify the source/plugin of a database table
 	 *
 	 * @param string $table_name Clean table name (without prefix)
 	 * @return array|null Table information or null if unknown
 	 */
 	protected static function identify_table_source( $table_name ) {
+		// Wordfence's tables have no separator after "wf" (wfhits, wffilemods), so a bare "wf" prefix would
+		// also claim an unrelated table such as wfoo_content. Its real table names are matched instead.
+		if ( preg_match( '/^wf(ls_|blocks|config|crawlers|filechanges|filemods|hits|hoover|issues|knownfilelist|livetraffic|locs|logins|notifications|pendingissues|reversecache|snipcache|status|trafficrates)/', $table_name ) ) {
+			return array(
+				'source'      => 'Wordfence',
+				'category'    => 'security',
+				'description' => 'Security data',
+			);
+		}
+
+		// 'category' is the stable key that logic reads; 'description' is display text and may be reworded
+		// or translated at any time, so nothing may branch on it.
 		$known_tables = array(
 			// WooCommerce
 			'wc_'            => array(
 				'source'      => 'WooCommerce',
+				'category'    => 'ecommerce',
 				'description' => 'E-commerce data',
 			),
 			'woocommerce_'   => array(
 				'source'      => 'WooCommerce',
+				'category'    => 'ecommerce',
 				'description' => 'E-commerce data',
 			),
 
 			// Yoast SEO
 			'yoast_'         => array(
 				'source'      => 'Yoast SEO',
+				'category'    => 'seo',
 				'description' => 'SEO data',
 			),
 			'wpseo_'         => array(
 				'source'      => 'Yoast SEO',
+				'category'    => 'seo',
 				'description' => 'SEO data',
 			),
 
 			// Contact Form 7
 			'cf7_'           => array(
 				'source'      => 'Contact Form 7',
+				'category'    => 'forms',
 				'description' => 'Form data',
 			),
 			'contact_form_7' => array(
 				'source'      => 'Contact Form 7',
+				'category'    => 'forms',
 				'description' => 'Form data',
 			),
 
 			// Gravity Forms
 			'gf_'            => array(
 				'source'      => 'Gravity Forms',
+				'category'    => 'forms',
 				'description' => 'Form data',
 			),
 			'rg_'            => array(
 				'source'      => 'Gravity Forms',
+				'category'    => 'forms',
 				'description' => 'Form data',
 			),
 
 			// WPForms
 			'wpforms_'       => array(
 				'source'      => 'WPForms',
+				'category'    => 'forms',
 				'description' => 'Form data',
 			),
 
 			// Elementor
 			'elementor_'     => array(
 				'source'      => 'Elementor',
+				'category'    => 'page_builder',
 				'description' => 'Page builder data',
 			),
 
 			// Easy Digital Downloads
 			'edd_'           => array(
 				'source'      => 'Easy Digital Downloads',
+				'category'    => 'ecommerce',
 				'description' => 'Digital store data',
 			),
 
 			// bbPress
 			'bbp_'           => array(
 				'source'      => 'bbPress',
+				'category'    => 'forum',
 				'description' => 'Forum data',
 			),
 
 			// BuddyPress
 			'bp_'            => array(
 				'source'      => 'BuddyPress',
+				'category'    => 'community',
 				'description' => 'Community data',
 			),
 
 			// MailChimp
 			'mc4wp_'         => array(
 				'source'      => 'MailChimp for WordPress',
+				'category'    => 'email',
 				'description' => 'Email marketing data',
 			),
 
 			// Events Calendar
 			'tribe_'         => array(
 				'source'      => 'The Events Calendar',
+				'category'    => 'events',
 				'description' => 'Events data',
 			),
 
 			// TablePress
 			'tablepress_'    => array(
 				'source'      => 'TablePress',
+				'category'    => 'tables',
 				'description' => 'Table data',
 			),
 
 			// Custom Post Type UI
 			'cptui_'         => array(
 				'source'      => 'Custom Post Type UI',
+				'category'    => 'content_types',
 				'description' => 'Custom post types',
 			),
 
 			// Advanced Custom Fields
 			'acf_'           => array(
 				'source'      => 'Advanced Custom Fields',
+				'category'    => 'custom_fields',
 				'description' => 'Custom fields data',
-			),
-
-			// Wordfence
-			'wfls_'          => array(
-				'source'      => 'Wordfence',
-				'description' => 'Security data',
-			),
-			'wf'             => array(
-				'source'      => 'Wordfence',
-				'description' => 'Security data',
 			),
 
 			// WPML
 			'icl_'           => array(
 				'source'      => 'WPML',
+				'category'    => 'translation',
 				'description' => 'Translation data',
 			),
 
 			// WP Rocket
 			'wpr_'           => array(
 				'source'      => 'WP Rocket',
+				'category'    => 'cache',
 				'description' => 'Cache data',
 			),
 
 			// LiteSpeed Cache
 			'litespeed_'     => array(
 				'source'      => 'LiteSpeed Cache',
+				'category'    => 'cache',
 				'description' => 'Cache data',
 			),
 
 			// W3 Total Cache
 			'w3tc_'          => array(
 				'source'      => 'W3 Total Cache',
+				'category'    => 'cache',
 				'description' => 'Cache data',
 			),
 
 			// UpdraftPlus
 			'updraft_'       => array(
 				'source'      => 'UpdraftPlus',
+				'category'    => 'backup',
 				'description' => 'Backup data',
 			),
 
 			// BackWPup
 			'backwpup_'      => array(
 				'source'      => 'BackWPup',
+				'category'    => 'backup',
 				'description' => 'Backup data',
 			),
 		);
 
 		foreach ( $known_tables as $prefix => $info ) {
-			if ( strpos( $table_name, $prefix ) === 0 ) {
+			if ( self::table_matches_prefix( $table_name, $prefix ) ) {
 				return $info;
 			}
 		}
 
-		// Check for common patterns
-		if ( strpos( $table_name, 'cache' ) !== false ) {
-			return array(
+		// Word-boundary, not substring: a plain strpos() for 'log' classified blog_posts and shop_catalog
+		// as log data, which would have made real content look like bookkeeping.
+		$fallbacks = array(
+			'cache'     => array(
 				'source'      => 'Cache Plugin',
+				'category'    => 'cache',
 				'description' => 'Cache data',
-			);
-		}
-
-		if ( strpos( $table_name, 'backup' ) !== false ) {
-			return array(
+			),
+			'backup'    => array(
 				'source'      => 'Backup Plugin',
+				'category'    => 'backup',
 				'description' => 'Backup data',
-			);
-		}
-
-		if ( strpos( $table_name, 'log' ) !== false ) {
-			return array(
+			),
+			'log'       => array(
 				'source'      => 'Logging Plugin',
+				'category'    => 'logs',
 				'description' => 'Log data',
-			);
-		}
-
-		if ( strpos( $table_name, 'analytics' ) !== false ) {
-			return array(
+			),
+			'analytics' => array(
 				'source'      => 'Analytics Plugin',
+				'category'    => 'analytics',
 				'description' => 'Analytics data',
-			);
+			),
+		);
+
+		foreach ( $fallbacks as $word => $info ) {
+			if ( preg_match( '/(^|_)' . $word . 's?($|_)/', $table_name ) ) {
+				return $info;
+			}
 		}
 
 		return null;
+	}
+
+	/**
+	 * Whether a table name starts with a known plugin prefix, at a separator boundary.
+	 *
+	 * Prefixes that already end in "_" match as-is; the rest must be followed by "_" or end the name, so a
+	 * short prefix cannot claim an unrelated table that merely begins with the same letters.
+	 *
+	 * @param string $table_name Table name without the site prefix.
+	 * @param string $prefix     Known plugin prefix.
+	 * @return bool
+	 */
+	protected static function table_matches_prefix( $table_name, $prefix ) {
+		if ( $table_name === $prefix ) {
+			return true;
+		}
+
+		if ( substr( $prefix, -1 ) === '_' ) {
+			return strpos( $table_name, $prefix ) === 0;
+		}
+
+		return 1 === preg_match( '/^' . preg_quote( $prefix, '/' ) . '($|_)/', $table_name );
+	}
+
+	/**
+	 * Evidence weight of a third-party table: may a match here decide that a file is in use?
+	 *
+	 * A cache, queue, log, backup manifest or security index records that a file exists; it never renders
+	 * it to a visitor. Counting those as usage is what made an entire media library report as in use on any
+	 * site running an image optimizer or a security plugin.
+	 *
+	 * Unknown tables default to bookkeeping. That is the safe direction here: over-reporting "in use" hides
+	 * every genuinely unused file and makes the plugin look broken, while under-reporting is recoverable -
+	 * the match is still shown in the file's notes, deletion goes to trash, and the admin can override.
+	 *
+	 * @param string $table_name  Table name without the site prefix.
+	 * @param string $column_name Column the match was found in.
+	 * @return string self::EVIDENCE_USAGE or self::EVIDENCE_BOOKKEEPING.
+	 */
+	public static function table_evidence( $table_name, $column_name = '' ) {
+		$info = self::identify_table_source( $table_name );
+
+		// Categories whose content is rendered to visitors, so a match really can be usage. Compared against
+		// the stable 'category' key, never the display text: a reworded or translated label must not
+		// silently change what gets deleted.
+		$usage_categories = array(
+			'ecommerce',
+			'page_builder',
+			'custom_fields',
+			'forms',
+			'forum',
+			'community',
+			'events',
+			'tables',
+			'content_types',
+			'translation',
+		);
+
+		$evidence = ( $info && isset( $info['category'] ) && in_array( $info['category'], $usage_categories, true ) )
+			? self::EVIDENCE_USAGE
+			: self::EVIDENCE_BOOKKEEPING;
+
+		/**
+		 * Filter the evidence weight of a third-party table.
+		 *
+		 * Lets a site correct a misclassification without waiting for a plugin release - for example
+		 * marking a bespoke content table as usage, or a noisy custom table as bookkeeping.
+		 *
+		 * @param string $evidence    'usage' or 'bookkeeping'.
+		 * @param string $table_name  Table name without the site prefix.
+		 * @param string $column_name Column the match was found in.
+		 */
+		return apply_filters( 'media_sweep_table_evidence', $evidence, $table_name, $column_name );
 	}
 
 	/**

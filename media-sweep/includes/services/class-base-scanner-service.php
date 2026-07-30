@@ -325,18 +325,7 @@ abstract class Base_Scanner_Service {
 	}
 
 	/**
-	 * Record one file's verdict as an upsert.
-	 *
-	 * Writes MUST NOT fail on an existing (scan_id, file_id) pair. Two
-	 * legitimate cases produce one: several registered image sizes can share
-	 * identical dimensions and therefore the SAME physical file (common with
-	 * WooCommerce/gallery plugins), and a resumed scan re-verdicts rows a
-	 * killed tick already wrote. A plain INSERT makes wpdb print a
-	 * "Duplicate entry ... for key 'uniq_pair'" error, and on sites with
-	 * WP_DEBUG_DISPLAY enabled wpdb ECHOES that error as HTML into the
-	 * response body, which corrupts the JSON the scanner is reading. Hence
-	 * ON DUPLICATE KEY UPDATE: idempotent, silent, and it keeps the freshest
-	 * verdict for the row.
+	 * Record one file's verdict as an upsert, so a repeated (scan_id, file_id) can never fail the write.
 	 *
 	 * @param int    $scan_id Scan ID.
 	 * @param int    $file_id File ID.

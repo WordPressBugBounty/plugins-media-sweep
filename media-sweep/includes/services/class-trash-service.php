@@ -8,6 +8,7 @@
 namespace Media_Sweep\Services;
 
 use Media_Sweep\Utils\Trash_Helper;
+use Media_Sweep\Utils\Filesystem_Helper;
 use Media_Sweep\Utils\Path_Helper;
 use Media_Sweep\Utils\File_Type_Helper;
 use Media_Sweep\Models\File_Model;
@@ -80,7 +81,7 @@ class Trash_Service {
 				$filename = $file->getFilename();
 
 				// Skip protection files
-				if ( in_array( $filename, array( '.htaccess', 'index.php' ) ) ) {
+				if ( Trash_Helper::is_protection_file( $filename ) ) {
 					continue;
 				}
 
@@ -119,8 +120,13 @@ class Trash_Service {
 		$file_size     = filesize( $file_path );
 		$modified_time = filemtime( $file_path );
 
-		// Get relative path from trash directory
-		$relative_path = str_replace( trailingslashit( $trash_dir ), '', $file_path );
+		// Normalize both sides first: the directory iterator and wp_upload_dir() can report different separators, and a
+		// mismatch left this path absolute, which broke every by-ID trash action and printed a server path in the UI.
+		$relative_path = str_replace(
+			trailingslashit( wp_normalize_path( $trash_dir ) ),
+			'',
+			wp_normalize_path( $file_path )
+		);
 
 		// Determine original path
 		$original_path = $relative_path;
@@ -147,7 +153,7 @@ class Trash_Service {
 			'extension'      => $file_extension,
 			'file_type'      => $file_type,
 			'modified_time'  => $modified_time,
-			'modified_date'  => date( 'Y-m-d H:i:s', $modified_time ),
+			'modified_date'  => wp_date( 'Y-m-d H:i:s', $modified_time ),
 			'age_days'       => floor( ( time() - $modified_time ) / DAY_IN_SECONDS ),
 		);
 	}
@@ -214,8 +220,14 @@ class Trash_Service {
 		}
 
 		// Delete the file permanently
-		if ( unlink( $file_path ) ) {
+		if ( Filesystem_Helper::delete( $file_path ) ) {
 			$result['success'] = true;
+
+			// The record must stop claiming the file is recoverable from trash.
+			$file_model = $this->find_file_record_for_path( $relative_path );
+			if ( $file_model ) {
+				$file_model->update( array( 'status' => 'deleted' ) );
+			}
 		} else {
 			$result['error'] = sprintf(
 				/* translators: %s is the filename that failed to delete */
@@ -349,10 +361,8 @@ class Trash_Service {
 		$original_relative_path = $relative_path;
 		$relative_path          = Path_Helper::ensure_relative_path( $original_relative_path );
 		$relative_path          = str_replace( Trash_Helper::TRASH_FOLDER . '/', '', $relative_path );
-		$hash                   = sha1( $relative_path );
 
-		// Find file record in database and update status to active
-		$file_model = File_Model::where( 'filepath_sha1', '=', $hash )->first();
+		$file_model = $this->find_file_record_for_path( $relative_path );
 		if ( $file_model ) {
 			$update_data = array(
 				'status' => 'active',
@@ -372,6 +382,32 @@ class Trash_Service {
 
 			$file_model->update( $update_data );
 		}
+	}
+
+	/**
+	 * Find the file record for an uploads-relative path.
+	 *
+	 * Records may have been stored with either an uploads-relative or an absolute path, and filepath_sha1 was
+	 * hashed from whichever form was stored, so every candidate form has to be tried before giving up.
+	 *
+	 * @param string $relative_path Uploads-relative path (no trash folder prefix).
+	 * @return File_Model|null
+	 */
+	protected function find_file_record_for_path( $relative_path ) {
+		// The record we trashed still points at the trash copy, so match that first: it identifies the row exactly.
+		$file_model = File_Model::where( 'filepath', '=', Trash_Helper::TRASH_FOLDER . '/' . $relative_path )->first();
+		if ( $file_model ) {
+			return $file_model;
+		}
+
+		foreach ( array_unique( array( $relative_path, Path_Helper::ensure_absolute_path( $relative_path ) ) ) as $candidate ) {
+			$file_model = File_Model::where( 'filepath_sha1', '=', sha1( $candidate ) )->first();
+			if ( $file_model ) {
+				return $file_model;
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -400,12 +436,12 @@ class Trash_Service {
 				$filename = $file->getFilename();
 
 				// Skip protection files
-				if ( in_array( $filename, array( '.htaccess', 'index.php' ) ) ) {
+				if ( Trash_Helper::is_protection_file( $filename ) ) {
 					continue;
 				}
 
 				$file_path     = $file->getPathname();
-				$relative_path = str_replace( trailingslashit( $trash_dir ), '', $file_path );
+				$relative_path = str_replace( trailingslashit( wp_normalize_path( $trash_dir ) ), '', wp_normalize_path( $file_path ) );
 
 				// Check if this is the file we're looking for
 				if ( md5( $relative_path ) === $file_id ) {
@@ -455,12 +491,12 @@ class Trash_Service {
 				$filename = $file->getFilename();
 
 				// Skip protection files
-				if ( in_array( $filename, array( '.htaccess', 'index.php' ) ) ) {
+				if ( Trash_Helper::is_protection_file( $filename ) ) {
 					continue;
 				}
 
 				if ( $file->isFile() ) {
-					if ( unlink( $file->getPathname() ) ) {
+					if ( Filesystem_Helper::delete( $file->getPathname() ) ) {
 						++$result['deleted_count'];
 					} else {
 						$result['errors'][] = sprintf(
@@ -517,7 +553,7 @@ class Trash_Service {
 				$filename = $file->getFilename();
 
 				// Skip protection files
-				if ( in_array( $filename, array( '.htaccess', 'index.php' ) ) ) {
+				if ( Trash_Helper::is_protection_file( $filename ) ) {
 					continue;
 				}
 
@@ -527,7 +563,7 @@ class Trash_Service {
 					$file_size = $file->getSize();
 					$file_path = $file->getPathname();
 
-					if ( unlink( $file_path ) ) {
+					if ( Filesystem_Helper::delete( $file_path ) ) {
 						++$result['deleted_count'];
 						$result['total_size'] += $file_size;
 					} else {

@@ -200,6 +200,10 @@ class Admin_Module {
 			'nonce'                 => wp_create_nonce( 'mswp-admin' ),
 			'assets_url'            => MEDIA_SWEEP_PLUGIN_URL . 'assets',
 			'uploads_dir_url'       => Path_Helper::get_uploads_dir_url(),
+			// Trash previews are <img> requests rather than api-fetch calls, so they need the REST root and
+			// a REST nonce of their own to authenticate.
+			'rest_url'              => esc_url_raw( rest_url( 'media-sweep/v1' ) ),
+			'rest_nonce'            => wp_create_nonce( 'wp_rest' ),
 			'is_woocommerce_active' => class_exists( 'WooCommerce' ),
 			'server_info'           => $this->system_monitor->get_server_info(),
 			// Cross-promo of our sibling WPCreatix plugins — already filtered to what this site can
