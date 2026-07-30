@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
@@ -172,6 +172,12 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 6. **Trash Management** – Safe file removal with easy restore capabilities
 
 == Changelog ==
+
+= 1.1.1 =
+* Fixed: on sites where several registered image sizes share the same dimensions (common with WooCommerce, Getwid, Robo Gallery and similar plugins), the scan tried to record the same file twice and the resulting database notices broke the scan with "Your server interrupted the scan". Each file is now recorded once, and writing a file result is fully repeat-safe.
+* Fixed: resuming a scan could re-record results it had already saved. Progress is now saved continuously while a scan runs, so a resumed scan picks up exactly where it stopped.
+* Fixed: Media Sweep no longer lets database notices or other plugins' debug output reach its own responses, and the scanner can now recover a scan even if something else on the site prints output mid-request. Sites running with WP_DEBUG_DISPLAY enabled are no longer affected.
+* Improved: scan requests shrink their workload further on hosts with very short request limits.
 
 = 1.1.0 =
 * New scan engine: your content is now read ONCE into an indexed reference index, then every attachment is checked with instant indexed lookups — scans that previously took hours (or died with "The response is not a valid JSON response.") now finish in minutes on any hosting.

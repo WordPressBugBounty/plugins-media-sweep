@@ -584,8 +584,6 @@ class Scanner_Controller extends REST_Controller {
 	public function tick( $request ) {
 		$scan_id = (int) $request->get_param( 'scan_id' );
 
-		$this->clean_output_buffers();
-
 		// A client that watched a previous tick get killed reports how long
 		// it survived; run the next slice comfortably inside that ceiling.
 		$budget_seconds = null;
@@ -671,22 +669,6 @@ class Scanner_Controller extends REST_Controller {
 			),
 			200
 		);
-	}
-
-	/**
-	 * Flush stray output buffers so PHP notices echoed by other plugins can
-	 * never corrupt our JSON response.
-	 */
-	protected function clean_output_buffers() {
-		while ( ob_get_level() > 0 ) {
-			$content = ob_get_contents();
-			// Only discard buffers containing unexpected output.
-			if ( $content !== '' && $content !== false ) {
-				ob_end_clean();
-			} else {
-				break;
-			}
-		}
 	}
 
 	/**

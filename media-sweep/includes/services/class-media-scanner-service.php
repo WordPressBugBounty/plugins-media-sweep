@@ -161,7 +161,8 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 	public function run_verdicts_slice( $scan_id, array &$checkpoint, $options, Time_Budget $budget ) {
 		global $wpdb;
 
-		$options = wp_parse_args( $options, $this->default_options );
+		$options   = wp_parse_args( $options, $this->default_options );
+		$last_save = microtime( true );
 
 		if ( ! isset( $checkpoint['att_total'] ) ) {
 			$checkpoint['att_total'] = (int) $wpdb->get_var(
@@ -207,10 +208,40 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 
 				$checkpoint['att_cursor'] = $attachment_id;
 				++$checkpoint['att_done'];
+
+				// Persist the cursor as we go. If this request is killed
+				// (gateway timeout, fatal, closed connection) the rows already
+				// written must not sit behind a stale cursor, or the next tick
+				// re-verdicts them - which is exactly how a resumed scan ends
+				// up re-processing work it already did.
+				if ( microtime( true ) - $last_save >= 2.0 ) {
+					$this->persist_checkpoint( $scan_id, $checkpoint );
+					$last_save = microtime( true );
+				}
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Write the checkpoint mid-slice without touching the rest of the scan row.
+	 *
+	 * @param int   $scan_id    Scan ID.
+	 * @param array $checkpoint Checkpoint data.
+	 */
+	protected function persist_checkpoint( $scan_id, array $checkpoint ) {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'mswp_scans';
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$table} SET checkpoint = %s, last_tick_at = %s WHERE id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- our own table.
+				maybe_serialize( $checkpoint ),
+				current_time( 'mysql' ),
+				(int) $scan_id
+			)
+		); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- prepared above.
 	}
 
 	/**
@@ -237,23 +268,15 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 			return false;
 		}
 
-		try {
-			File_Scan_Model::create(
-				array(
-					'scan_id' => $scan_id,
-					'file_id' => $file->id,
-					'status'  => $status,
-					'notes'   => $this->cap_notes( $notes ),
-				)
-			);
-		} catch ( \Exception $e ) {
-			// Duplicate (already recorded by an earlier retried slice) or a
-			// wpdb edge case; either way the scan continues.
-			unset( $e );
-		}
+		// Track file IDs written for this attachment: several registered image
+		// sizes can share identical dimensions and therefore the same physical
+		// file, so the same file_id can come up more than once.
+		$written = array( (int) $file->id => true );
+
+		$this->record_file_scan( $scan_id, $file->id, $status, $notes );
 
 		if ( ! empty( $options['include_thumbnails'] ) ) {
-			$this->process_attachment_thumbnails( $scan_id, $attachment_id, $status, $notes );
+			$this->process_attachment_thumbnails( $scan_id, $attachment_id, $status, $notes, $written );
 		}
 
 		return true;
@@ -483,8 +506,10 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 	 * @param int    $attachment_id The attachment ID
 	 * @param string $parent_status Parent file status
 	 * @param array  $parent_notes  Parent file notes
+	 * @param array  $written       File IDs already recorded for this
+	 *                              attachment, by reference.
 	 */
-	protected function process_attachment_thumbnails( $scan_id, $attachment_id, $parent_status, $parent_notes = array() ) {
+	protected function process_attachment_thumbnails( $scan_id, $attachment_id, $parent_status, $parent_notes = array(), &$written = array() ) {
 		$metadata = wp_get_attachment_metadata( $attachment_id );
 
 		if ( empty( $metadata['sizes'] ) ) {
@@ -511,6 +536,13 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 				continue;
 			}
 
+			// Sizes registered with identical dimensions resolve to the same
+			// generated file; record it once, under the first size name.
+			if ( isset( $written[ (int) $thumb_file->id ] ) ) {
+				continue;
+			}
+			$written[ (int) $thumb_file->id ] = true;
+
 			$thumb_notes = array_merge(
 				array(
 					sprintf(
@@ -523,19 +555,7 @@ class Media_Scanner_Service extends Base_Scanner_Service implements Media_Scanne
 				$parent_notes
 			);
 
-			try {
-				File_Scan_Model::create(
-					array(
-						'scan_id' => $scan_id,
-						'file_id' => $thumb_file->id,
-						'status'  => $parent_status,
-						'notes'   => $this->cap_notes( $thumb_notes ),
-					)
-				);
-			} catch ( \Exception $e ) {
-				// Duplicate from a retried slice; main scan continues.
-				unset( $e );
-			}
+			$this->record_file_scan( $scan_id, $thumb_file->id, $parent_status, $thumb_notes );
 		}
 	}
 

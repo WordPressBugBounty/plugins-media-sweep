@@ -10,6 +10,7 @@ namespace Media_Sweep\Services;
 use Media_Sweep\Models\Scan_Model;
 use Media_Sweep\Models\File_Model;
 use Media_Sweep\Models\File_Scan_Model;
+use Media_Sweep\Database\Tables\File_Scan_Table;
 use Media_Sweep\Utils\Path_Helper;
 
 /**
@@ -321,6 +322,45 @@ abstract class Base_Scanner_Service {
 		}
 
 		return $notes;
+	}
+
+	/**
+	 * Record one file's verdict as an upsert.
+	 *
+	 * Writes MUST NOT fail on an existing (scan_id, file_id) pair. Two
+	 * legitimate cases produce one: several registered image sizes can share
+	 * identical dimensions and therefore the SAME physical file (common with
+	 * WooCommerce/gallery plugins), and a resumed scan re-verdicts rows a
+	 * killed tick already wrote. A plain INSERT makes wpdb print a
+	 * "Duplicate entry ... for key 'uniq_pair'" error, and on sites with
+	 * WP_DEBUG_DISPLAY enabled wpdb ECHOES that error as HTML into the
+	 * response body, which corrupts the JSON the scanner is reading. Hence
+	 * ON DUPLICATE KEY UPDATE: idempotent, silent, and it keeps the freshest
+	 * verdict for the row.
+	 *
+	 * @param int    $scan_id Scan ID.
+	 * @param int    $file_id File ID.
+	 * @param string $status  Verdict status.
+	 * @param array  $notes   Usage notes (capped before storage).
+	 * @return bool True when the row was written.
+	 */
+	protected function record_file_scan( $scan_id, $file_id, $status, $notes ) {
+		global $wpdb;
+
+		$table = ( new File_Scan_Table() )->get_full_table_name();
+
+		$sql = $wpdb->prepare(
+			"INSERT INTO {$table} (scan_id, file_id, status, notes, recorded_at)
+			 VALUES (%d, %d, %s, %s, %s)
+			 ON DUPLICATE KEY UPDATE status = VALUES(status), notes = VALUES(notes), recorded_at = VALUES(recorded_at)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name from our own schema class.
+			(int) $scan_id,
+			(int) $file_id,
+			$status,
+			maybe_serialize( $this->cap_notes( $notes ) ),
+			current_time( 'mysql' )
+		);
+
+		return false !== $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- prepared above.
 	}
 
 	/**
