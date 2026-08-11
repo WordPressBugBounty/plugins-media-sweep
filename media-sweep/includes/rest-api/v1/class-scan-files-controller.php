@@ -202,6 +202,8 @@ class Scan_Files_Controller extends REST_Controller {
 	 * @return WP_REST_Response The response object.
 	 */
 	public function get_items( $request ) {
+		global $wpdb;
+
 		$page     = $request->get_param( 'page' );
 		$per_page = $request->get_param( 'per_page' );
 		$scan_id  = $request->get_param( 'scan_id' );
@@ -235,7 +237,16 @@ class Scan_Files_Controller extends REST_Controller {
 		}
 
 		if ( $search ) {
-			$query->where( 'filepath', 'like', '%' . $search . '%' );
+			// filepath lives on mswp_files, not on the mswp_file_scan table this query runs against, so
+			// filtering on it directly produced "Unknown column 'filepath'" and an empty result for every
+			// search term. Matched through a subquery rather than a join: both tables have id and status
+			// columns, and joining them under SELECT * would overwrite the scan status with the file status.
+			$query->where_raw(
+				$wpdb->prepare(
+					"file_id IN ( SELECT id FROM {$wpdb->prefix}mswp_files WHERE filepath LIKE %s )",
+					'%' . $wpdb->esc_like( $search ) . '%'
+				)
+			);
 		}
 
 		if ( $orderby ) {

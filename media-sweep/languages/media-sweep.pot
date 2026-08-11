@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Sweep 1.1.2\n"
+"Project-Id-Version: Media Sweep 1.1.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-sweep\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-07-30T16:18:35+00:00\n"
+"POT-Creation-Date: 2026-08-11T10:42:11+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-sweep\n"
@@ -42,22 +42,22 @@ msgstr ""
 
 #: includes/admin/class-admin-module.php:99
 #: includes/admin/class-admin-module.php:100
-#: build/index.js:26
 #: build/index.js:27
+#: build/index.js:28
 msgid "Scans"
 msgstr ""
 
 #: includes/admin/class-admin-module.php:108
 #: includes/admin/class-admin-module.php:109
-#: build/index.js:31
-#: build/index.js:33
+#: build/index.js:32
+#: build/index.js:34
 msgid "Trash"
 msgstr ""
 
 #: includes/admin/class-admin-module.php:117
 #: includes/admin/class-admin-module.php:118
 #: includes/admin/class-admin-module.php:438
-#: build/index.js:33
+#: build/index.js:34
 msgid "Settings"
 msgstr ""
 
@@ -249,34 +249,34 @@ msgstr ""
 msgid "Search for files by filepath."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:301
-#: includes/rest-api/v1/class-scan-files-controller.php:373
+#: includes/rest-api/v1/class-scan-files-controller.php:312
+#: includes/rest-api/v1/class-scan-files-controller.php:384
 #: includes/rest-api/v1/class-scans-controller.php:255
 #: includes/rest-api/v1/class-scans-controller.php:303
 msgid "Validation failed"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:321
-#: includes/rest-api/v1/class-scan-files-controller.php:350
-#: includes/rest-api/v1/class-scan-files-controller.php:393
+#: includes/rest-api/v1/class-scan-files-controller.php:332
+#: includes/rest-api/v1/class-scan-files-controller.php:361
+#: includes/rest-api/v1/class-scan-files-controller.php:404
 msgid "Scan file not found"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:402
+#: includes/rest-api/v1/class-scan-files-controller.php:413
 msgid "Failed to delete scan file"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:416
+#: includes/rest-api/v1/class-scan-files-controller.php:427
 msgid "Invalid IDs provided"
 msgstr ""
 
 #. translators: %d is the file scan ID
-#: includes/rest-api/v1/class-scan-files-controller.php:429
+#: includes/rest-api/v1/class-scan-files-controller.php:440
 #, php-format
 msgid "Scan file with ID %d not found"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:464
+#: includes/rest-api/v1/class-scan-files-controller.php:475
 msgid "Bulk update failed"
 msgstr ""
 
@@ -420,12 +420,12 @@ msgid "Limit results to scans with specific mode."
 msgstr ""
 
 #: includes/rest-api/v1/class-scans-controller.php:341
-#: build/index.js:27
+#: build/index.js:28
 msgid "Failed to delete scan"
 msgstr ""
 
 #: includes/rest-api/v1/class-settings-controller.php:85
-#: build/index.js:33
+#: build/index.js:34
 msgid "Auto Delete After Days"
 msgstr ""
 
@@ -460,19 +460,19 @@ msgid "Trash file not found."
 msgstr ""
 
 #: includes/rest-api/v1/class-trash-controller.php:318
-#: build/index.js:32
+#: build/index.js:33
 msgid "File deleted permanently."
 msgstr ""
 
 #: includes/rest-api/v1/class-trash-controller.php:363
 #: includes/services/class-trash-service.php:270
-#: build/index.js:32
+#: build/index.js:33
 msgid "File restored to media library successfully."
 msgstr ""
 
 #: includes/rest-api/v1/class-trash-controller.php:364
 #: includes/services/class-trash-service.php:287
-#: build/index.js:32
+#: build/index.js:33
 msgid "File restored to filesystem successfully."
 msgstr ""
 
@@ -493,7 +493,7 @@ msgid "Trash emptied successfully. %d files deleted."
 msgstr ""
 
 #: includes/rest-api/v1/class-trash-controller.php:511
-#: build/index.js:33
+#: build/index.js:34
 msgid "Failed to empty trash."
 msgstr ""
 
@@ -545,55 +545,47 @@ msgstr ""
 msgid "Age in days."
 msgstr ""
 
-#: includes/services/class-action-service.php:110
-msgid "One file is no longer part of these scan results and was skipped. It may already have been removed - refresh the page for the current list."
-msgstr ""
-
-#: includes/services/class-action-service.php:122
-msgid "One file record could not be found and was skipped. Run a new scan to refresh your results."
-msgstr ""
-
 #. translators: %s is the action type
-#: includes/services/class-action-service.php:188
+#: includes/services/class-action-service.php:189
 #, php-format
 msgid "Unknown action type: %s"
 msgstr ""
 
 #. translators: %1$s is the file path, %2$s is the error message
-#: includes/services/class-action-service.php:196
+#: includes/services/class-action-service.php:197
 #, php-format
 msgid "Error processing file %1$s: %2$s"
 msgstr ""
 
 #. translators: %s is the file name
-#: includes/services/class-action-service.php:265
+#: includes/services/class-action-service.php:266
 #, php-format
 msgid "Skipped \"%s\": the file has changed since this scan ran, so its result may be out of date. Run a new scan before removing it."
 msgstr ""
 
 #. translators: %s is the file status
-#: includes/services/class-action-service.php:337
+#: includes/services/class-action-service.php:338
 msgid "Cannot restore deleted file"
 msgstr ""
 
 #. translators: %s is the file path
-#: includes/services/class-action-service.php:370
+#: includes/services/class-action-service.php:371
 #, php-format
 msgid "Cannot restore file - physical file missing: %s"
 msgstr ""
 
-#: includes/services/class-action-service.php:401
+#: includes/services/class-action-service.php:402
 msgid "File restored to media library"
 msgstr ""
 
 #. translators: %s is the file type
-#: includes/services/class-action-service.php:450
+#: includes/services/class-action-service.php:451
 #, php-format
 msgid "File type not allowed by WordPress: %s"
 msgstr ""
 
 #. translators: %s is the file path
-#: includes/services/class-action-service.php:461
+#: includes/services/class-action-service.php:462
 #, php-format
 msgid "File does not exist on filesystem: %s"
 msgstr ""
@@ -1180,10 +1172,10 @@ msgstr ""
 #: build/index.js:1
 #: build/index.js:17
 #: build/index.js:18
-#: build/index.js:23
-#: build/index.js:26
+#: build/index.js:24
 #: build/index.js:27
-#: build/index.js:33
+#: build/index.js:28
+#: build/index.js:34
 msgid "Cancel"
 msgstr ""
 
@@ -1194,8 +1186,8 @@ msgid "Showing %1$d to %2$d of %3$d results"
 msgstr ""
 
 #: build/index.js:2
-#: build/index.js:22
-#: build/index.js:25
+#: build/index.js:23
+#: build/index.js:26
 msgid "No results found"
 msgstr ""
 
@@ -1227,7 +1219,7 @@ msgid "Dismiss"
 msgstr ""
 
 #: build/index.js:3
-#: build/index.js:33
+#: build/index.js:34
 msgid "More from WPCreatix"
 msgstr ""
 
@@ -1701,7 +1693,7 @@ msgstr ""
 
 #: build/index.js:3
 #: build/index.js:9
-#: build/index.js:27
+#: build/index.js:28
 msgid "Start Scan"
 msgstr ""
 
@@ -1932,7 +1924,7 @@ msgid "Technical detail: %s"
 msgstr ""
 
 #: build/index.js:9
-#: build/index.js:27
+#: build/index.js:28
 msgid "Resume Scan"
 msgstr ""
 
@@ -1953,8 +1945,8 @@ msgid "Scan Completed Successfully!"
 msgstr ""
 
 #: build/index.js:9
-#: build/index.js:28
 #: build/index.js:29
+#: build/index.js:30
 msgid "Scan Results"
 msgstr ""
 
@@ -1971,14 +1963,14 @@ msgid "Unused Files"
 msgstr ""
 
 #: build/index.js:9
-#: build/index.js:19
-#: build/index.js:21
+#: build/index.js:20
+#: build/index.js:22
 msgid "In Media Library"
 msgstr ""
 
 #: build/index.js:9
-#: build/index.js:19
-#: build/index.js:21
+#: build/index.js:20
+#: build/index.js:22
 msgid "Used (Not in Media)"
 msgstr ""
 
@@ -1991,12 +1983,12 @@ msgid "No scan results available."
 msgstr ""
 
 #: build/index.js:9
-#: build/index.js:26
+#: build/index.js:27
 msgid "View Results"
 msgstr ""
 
 #: build/index.js:9
-#: build/index.js:26
+#: build/index.js:27
 msgid "Start New Scan"
 msgstr ""
 
@@ -2021,7 +2013,7 @@ msgid "Scanning"
 msgstr ""
 
 #: build/index.js:9
-#: build/index.js:26
+#: build/index.js:27
 msgid "Results"
 msgstr ""
 
@@ -2088,9 +2080,9 @@ msgid "Age"
 msgstr ""
 
 #: build/index.js:12
-#: build/index.js:22
-#: build/index.js:25
+#: build/index.js:23
 #: build/index.js:26
+#: build/index.js:27
 msgid "Actions"
 msgstr ""
 
@@ -2127,8 +2119,8 @@ msgid "file"
 msgstr ""
 
 #: build/index.js:12
-#: build/index.js:32
 #: build/index.js:33
+#: build/index.js:34
 msgid "Empty Trash"
 msgstr ""
 
@@ -2169,7 +2161,7 @@ msgid "Action cancelled"
 msgstr ""
 
 #: build/index.js:12
-#: build/index.js:19
+#: build/index.js:20
 msgid "Delete Files"
 msgstr ""
 
@@ -2235,7 +2227,7 @@ msgid "Failed to get batch files"
 msgstr ""
 
 #: build/index.js:17
-#: build/index.js:26
+#: build/index.js:27
 msgid "Move to Trash"
 msgstr ""
 
@@ -2289,540 +2281,552 @@ msgid_plural "%d files were left alone because they are reported as in use. To r
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/index.js:19
+#. translators: %d is the number of files that were already removed
+#: build/index.js:20
+#, js-format
+msgid "%d file had already been removed — thumbnails are deleted together with the media file they belong to."
+msgid_plural "%d files had already been removed — thumbnails are deleted together with the media file they belong to."
+msgstr[0] ""
+msgstr[1] ""
+
+#: build/index.js:20
+msgid "Go to Trash"
+msgstr ""
+
+#: build/index.js:20
 msgid "Close"
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "Action Failed"
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "All Status"
 msgstr ""
 
-#: build/index.js:19
-#: build/index.js:21
+#: build/index.js:20
+#: build/index.js:22
 msgid "In Use"
 msgstr ""
 
-#: build/index.js:19
-#: build/index.js:21
+#: build/index.js:20
+#: build/index.js:22
 msgid "Unused"
 msgstr ""
 
-#: build/index.js:19
-#: build/index.js:21
+#: build/index.js:20
+#: build/index.js:22
 msgid "Orphaned"
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "Bulk Actions"
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "Restore to Media Library"
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "Filter by status"
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "Search files..."
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "Search"
 msgstr ""
 
-#: build/index.js:19
+#: build/index.js:20
 msgid "Clear"
 msgstr ""
 
 #. translators: %1$d is the number of selected items, %2$d is the total number of items
-#: build/index.js:20
+#: build/index.js:21
 #, js-format
 msgid "%1$d of %2$d selected"
 msgstr ""
 
 #. translators: %d is the total number of items
-#: build/index.js:21
+#: build/index.js:22
 #, js-format
 msgid "%d items total"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Move all files with current status to trash"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Move all files to trash"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Move All to Trash"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Restore all files with \"not_in_media\" status"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Restore All"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Move selected files to trash"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Move Selected to Trash"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Restore selected files"
 msgstr ""
 
-#: build/index.js:21
-#: build/index.js:32
+#: build/index.js:22
+#: build/index.js:33
 msgid "Restore Selected"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Unknown"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Details"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Scroll to parent attachment"
 msgstr ""
 
-#: build/index.js:21
 #: build/index.js:22
+#: build/index.js:23
 msgid "Media ID"
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Move this file to Trash? Its thumbnails are deleted permanently and cannot be restored."
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Move this file to Trash? You can restore it later."
 msgstr ""
 
-#: build/index.js:21
+#: build/index.js:22
 msgid "Reported in use:"
 msgstr ""
 
 #. translators: %d is the number of additional places not listed
-#: build/index.js:22
+#: build/index.js:23
 #, js-format
 msgid "• +%d more (see Notes)"
 msgstr ""
 
-#: build/index.js:22
+#: build/index.js:23
 msgid "Goes to Trash — restorable. Thumbnails are deleted permanently."
 msgstr ""
 
-#: build/index.js:22
+#: build/index.js:23
 msgid "Goes to Trash — you can restore it."
 msgstr ""
 
-#: build/index.js:22
-#: build/index.js:25
+#: build/index.js:23
+#: build/index.js:26
 msgid "No files match your current filters."
 msgstr ""
 
-#: build/index.js:22
-#: build/index.js:25
+#: build/index.js:23
 #: build/index.js:26
+#: build/index.js:27
 msgid "Status"
 msgstr ""
 
-#: build/index.js:22
-#: build/index.js:25
+#: build/index.js:23
+#: build/index.js:26
 msgid "Preview"
 msgstr ""
 
-#: build/index.js:22
+#: build/index.js:23
 msgid "Thumbnail Of"
 msgstr ""
 
-#: build/index.js:22
-#: build/index.js:25
+#: build/index.js:23
+#: build/index.js:26
 msgid "Path"
 msgstr ""
 
 #. translators: %d is the number of additional usage locations.
-#: build/index.js:23
-#: build/index.js:26
+#: build/index.js:24
+#: build/index.js:27
 #, js-format
 msgid " (+%d more)"
 msgstr ""
 
-#: build/index.js:23
-#: build/index.js:26
+#: build/index.js:24
+#: build/index.js:27
 msgid "Moved to Trash"
 msgstr ""
 
-#: build/index.js:23
-#: build/index.js:26
+#: build/index.js:24
+#: build/index.js:27
 msgid "Deleted"
 msgstr ""
 
-#: build/index.js:23
+#: build/index.js:24
 msgid "Delete from media library"
 msgstr ""
 
-#: build/index.js:23
-#: build/index.js:26
+#: build/index.js:24
+#: build/index.js:27
 msgid "Delete a file reported as in use"
 msgstr ""
 
-#: build/index.js:23
+#: build/index.js:24
 msgid "Delete Media File"
 msgstr ""
 
-#: build/index.js:23
-#: build/index.js:26
+#: build/index.js:24
+#: build/index.js:27
 msgid "Delete anyway"
 msgstr ""
 
-#: build/index.js:23
-#: build/index.js:27
+#: build/index.js:24
+#: build/index.js:28
 msgid "Delete"
 msgstr ""
 
-#: build/index.js:23
 #: build/index.js:24
+#: build/index.js:25
 msgid "moved to trash"
 msgstr ""
 
-#: build/index.js:23
 #: build/index.js:24
-#: build/index.js:29
+#: build/index.js:25
+#: build/index.js:30
 msgid "restored"
 msgstr ""
 
 #. translators: %s is the action performed (moved to trash, restored)
-#: build/index.js:24
 #: build/index.js:25
+#: build/index.js:26
 #, js-format
 msgid "File %s successfully."
 msgstr ""
 
-#: build/index.js:24
 #: build/index.js:25
+#: build/index.js:26
 msgid "Failed to process file action."
 msgstr ""
 
-#: build/index.js:24
 #: build/index.js:25
+#: build/index.js:26
 msgid "This file is reported as in use, so it was left alone. Use \"Delete anyway\" to remove it."
 msgstr ""
 
-#: build/index.js:24
 #: build/index.js:25
+#: build/index.js:26
 msgid "File was skipped (may already have an action taken)."
 msgstr ""
 
-#: build/index.js:24
-#: build/index.js:26
+#: build/index.js:25
+#: build/index.js:27
 msgid "Items per page:"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Delete file"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Delete File"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Add to media library"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "File is already in media library"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Completed"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Paused"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Failed"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "In Progress"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Media Sweep Dashboard"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Clean up your WordPress media library and file system to optimize storage and improve performance."
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Recent Scans"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Type"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Date"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "No scans yet"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Start your first scan to begin cleaning up your WordPress media files and optimize your storage."
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Start Your First Scan"
 msgstr ""
 
-#: build/index.js:26
 #: build/index.js:27
 #: build/index.js:28
+#: build/index.js:29
 msgid "Media Library"
 msgstr ""
 
-#: build/index.js:26
 #: build/index.js:27
 #: build/index.js:28
+#: build/index.js:29
 msgid "File System"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "files scanned"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Not finished — can be resumed"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "In progress..."
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Resume"
 msgstr ""
 
-#: build/index.js:26
+#: build/index.js:27
 msgid "Delete Scan"
 msgstr ""
 
 #. translators: %s is the scan type (Media Library or File System)
-#: build/index.js:27
+#: build/index.js:28
 #, js-format
 msgid "Are you sure you want to delete this %s scan? This action cannot be undone."
 msgstr ""
 
-#: build/index.js:27
+#: build/index.js:28
 msgid "Scan deleted successfully"
 msgstr ""
 
-#: build/index.js:27
+#: build/index.js:28
 msgid "The scan and all its associated data have been removed."
 msgstr ""
 
-#: build/index.js:27
+#: build/index.js:28
 msgid "An error occurred while deleting the scan."
 msgstr ""
 
 #. translators: %s is the scan type (Media Library or File System)
-#: build/index.js:28
+#: build/index.js:29
 #, js-format
 msgid "Scan Results: %s"
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "Failed to load scan details."
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "Failed to load scan results."
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "No Scan Selected"
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "Please select a scan to view results."
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "Go Back"
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "← Back to Dashboard"
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "Scan Type:"
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "Started:"
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "Completed:"
 msgstr ""
 
-#: build/index.js:28
+#: build/index.js:29
 msgid "These results are out of date"
 msgstr ""
 
 #. translators: %d is the number of days since the scan finished
-#: build/index.js:29
+#: build/index.js:30
 #, js-format
 msgid "This scan finished %d day ago, so files may have been used or replaced since then. Run a new scan before removing anything."
 msgid_plural "This scan finished %d days ago, so files may have been used or replaced since then. Run a new scan before removing anything."
 msgstr[0] ""
 msgstr[1] ""
 
-#: build/index.js:29
+#: build/index.js:30
 msgid "Failed to load trash files."
 msgstr ""
 
-#: build/index.js:29
+#: build/index.js:30
 msgid "deleted"
 msgstr ""
 
 #. translators: %1$d is the number of files, %2$s is the action performed (deleted, restored)
-#: build/index.js:30
+#: build/index.js:31
 #, js-format
 msgid "%1$d files %2$s successfully."
 msgstr ""
 
 #. translators: %d is the number of files that failed
-#: build/index.js:31
+#: build/index.js:32
 #, js-format
 msgid "%d files failed. Check console for details."
 msgstr ""
 
-#: build/index.js:31
+#: build/index.js:32
 msgid "Batch action failed."
 msgstr ""
 
-#: build/index.js:31
+#: build/index.js:32
 msgid "Please select files first."
 msgstr ""
 
-#: build/index.js:31
+#: build/index.js:32
 msgid "Manage files that have been moved to trash"
 msgstr ""
 
 #. translators: %d is the number of selected files
-#: build/index.js:32
+#: build/index.js:33
 #, js-format
 msgid "%d files selected"
 msgstr ""
 
-#: build/index.js:32
+#: build/index.js:33
 msgid "Delete Permanently"
 msgstr ""
 
-#: build/index.js:32
+#: build/index.js:33
 msgid "Action failed."
 msgstr ""
 
-#: build/index.js:32
+#: build/index.js:33
 msgid "Are you sure you want to permanently delete all files in trash? This action cannot be undone."
 msgstr ""
 
 #. translators: %1$d is the number of files, %2$s is the total file size
-#: build/index.js:33
+#: build/index.js:34
 #, js-format
 msgid "This will delete %1$d files (%2$s total)."
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Failed to load settings"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Configure your Media Sweep plugin settings"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Trash Management"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Configure how files in trash are managed automatically"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Automatically delete files from trash after the specified number of days. Set to 0 to disable auto-deletion."
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "days"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Data Management"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Control what happens to Media Sweep data when the plugin is removed"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Delete All Data on Uninstall"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "When enabled, deleting this plugin permanently removes all Media Sweep data — scan history, settings, scheduled tasks, and any files still in the Media Sweep trash. This cannot be undone. Leave it off to keep your data if you reinstall later."
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Delete data on uninstall"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Free plugins from the makers of Media Sweep."
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "You have unsaved changes"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Reset"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Settings saved successfully"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Failed to save settings"
 msgstr ""
 
-#: build/index.js:33
+#: build/index.js:34
 msgid "Save Settings"
 msgstr ""

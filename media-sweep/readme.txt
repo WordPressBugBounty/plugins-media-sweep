@@ -1,8 +1,8 @@
-=== Media Sweep – WordPress Media Cleaner ===
+﻿=== Media Sweep – WordPress Media Cleaner ===
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
@@ -173,6 +173,9 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 
 == Changelog ==
 
+= 1.1.3 =
+* Fixed: the search box on the scan results screen always came back empty.
+
 = 1.1.2 =
 * New: you can now delete a file even when it is reported as in use. The confirmation shows where it was found so you can judge for yourself, and the file goes to Trash like any other, so you can restore it if you change your mind.
 * Fixed: files were wrongly reported as in use because other plugins keep their own record of every file on your site. Image optimizers, security scanners, backup tools and caching plugins all do this. Those records are still shown in the file's notes, but they no longer count as usage on their own.
@@ -277,6 +280,9 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 * Minimal server resource usage during scans
 
 == Upgrade Notice ==
+
+= 1.1.3 =
+Fixes the search box on the scan results screen, which returned no results whatever you typed. Recommended for everyone.
 
 = 1.0.6 =
 Tested with WordPress 7.0 and adds an optional "Delete All Data on Uninstall" setting for a clean removal. Safe upgrade — data deletion is off by default.
