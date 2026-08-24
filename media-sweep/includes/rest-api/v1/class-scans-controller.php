@@ -191,10 +191,39 @@ class Scans_Controller extends REST_Controller {
 				'enum'        => array( 'asc', 'desc' ),
 			),
 			'fields'   => array(
-				'description' => __( 'Comma-separated list of fields to include in the response.', 'media-sweep' ),
-				'type'        => 'string',
+				'description'       => __( 'Comma-separated list of fields to include in the response.', 'media-sweep' ),
+				'type'              => 'string',
+				// The value is interpolated into the SELECT clause, so it is restricted to real columns here.
+				// Anything else is dropped rather than reaching the query (CVE-2026-77824).
+				'sanitize_callback' => array( $this, 'sanitize_fields' ),
 			),
 		);
+	}
+
+	/**
+	 * Columns of mswp_scans that the `fields` parameter may name.
+	 *
+	 * @var string[]
+	 */
+	const ALLOWED_FIELDS = array( 'id', 'started_at', 'finished_at', 'mode', 'options', 'status', 'phase', 'checkpoint', 'last_tick_at' );
+
+	/**
+	 * Keep only real columns from a comma-separated `fields` value.
+	 *
+	 * See Scan_Files_Controller::sanitize_fields(); same class of issue (CVE-2026-77824), same defence.
+	 *
+	 * @param string $value Raw parameter value.
+	 * @return string Comma-separated safe columns (empty string selects everything).
+	 */
+	public function sanitize_fields( $value ) {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return '';
+		}
+
+		$requested = array_map( 'trim', explode( ',', $value ) );
+		$safe      = array_intersect( $requested, self::ALLOWED_FIELDS );
+
+		return implode( ',', $safe );
 	}
 
 	/**

@@ -407,8 +407,41 @@ class Query_Builder {
 	 * @return $this
 	 */
 	public function select( $columns = array( '*' ) ) {
-		$this->columns = is_array( $columns ) ? $columns : func_get_args();
+		$columns       = is_array( $columns ) ? $columns : func_get_args();
+		$this->columns = self::sanitize_column_identifiers( $columns );
 		return $this;
+	}
+
+	/**
+	 * Reduce a list of column references to identifiers that are safe to drop into a SELECT clause.
+	 *
+	 * These tokens are interpolated verbatim by to_sql(), never sent through $wpdb->prepare(), so any that
+	 * reach the SQL must be trusted. Only a bare "*", a plain column name, or "alias.column" (with an
+	 * optional "*") is allowed. Anything carrying a space, parenthesis, comma, quote or backtick - the shapes
+	 * an injected subquery or aliased expression needs - is discarded. Every internal caller passes plain
+	 * identifiers or "*", so nothing legitimate is lost; an empty result falls back to "*".
+	 *
+	 * @param array $columns Raw column references.
+	 * @return array Safe column references.
+	 */
+	protected static function sanitize_column_identifiers( array $columns ) {
+		$safe = array();
+
+		foreach ( $columns as $column ) {
+			if ( ! is_string( $column ) ) {
+				continue;
+			}
+
+			$column = trim( $column );
+
+			if ( '*' === $column
+				|| preg_match( '/^[A-Za-z0-9_]+$/', $column )
+				|| preg_match( '/^[A-Za-z0-9_]+\.([A-Za-z0-9_]+|\*)$/', $column ) ) {
+				$safe[] = $column;
+			}
+		}
+
+		return empty( $safe ) ? array( '*' ) : $safe;
 	}
 
 	/**

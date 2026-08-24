@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.1.3
+Stable tag: 1.1.4
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
@@ -173,6 +173,9 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 
 == Changelog ==
 
+= 1.1.4 =
+* Security: hardened input validation on the scan data endpoints. Updating is recommended.
+
 = 1.1.3 =
 * Fixed: the search box on the scan results screen always came back empty.
 
@@ -280,6 +283,9 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 * Minimal server resource usage during scans
 
 == Upgrade Notice ==
+
+= 1.1.4 =
+Security hardening for the scan data endpoints. Please update.
 
 = 1.1.3 =
 Fixes the search box on the scan results screen, which returned no results whatever you typed. Recommended for everyone.

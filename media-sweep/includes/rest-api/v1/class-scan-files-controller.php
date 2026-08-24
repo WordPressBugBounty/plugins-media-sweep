@@ -185,14 +185,45 @@ class Scan_Files_Controller extends REST_Controller {
 				'enum'        => array( 'asc', 'desc' ),
 			),
 			'fields'   => array(
-				'description' => __( 'Comma-separated list of fields to include in the response.', 'media-sweep' ),
-				'type'        => 'string',
+				'description'       => __( 'Comma-separated list of fields to include in the response.', 'media-sweep' ),
+				'type'              => 'string',
+				// The value is interpolated into the SELECT clause, so it is restricted to real columns here.
+				// Anything else is dropped rather than reaching the query (CVE-2026-77824).
+				'sanitize_callback' => array( $this, 'sanitize_fields' ),
 			),
 			'search'   => array(
 				'description' => __( 'Search for files by filepath.', 'media-sweep' ),
 				'type'        => 'string',
 			),
 		);
+	}
+
+	/**
+	 * Columns of mswp_file_scan that the `fields` parameter may name.
+	 *
+	 * @var string[]
+	 */
+	const ALLOWED_FIELDS = array( 'id', 'scan_id', 'file_id', 'status', 'notes', 'recorded_at' );
+
+	/**
+	 * Keep only real columns from a comma-separated `fields` value.
+	 *
+	 * `fields` is interpolated into the SELECT clause without preparation, so an attacker could otherwise
+	 * append a subquery and read arbitrary data (CVE-2026-77824). Filtering to known columns closes that
+	 * at the REST boundary; the query builder validates identifiers again as a second line of defence.
+	 *
+	 * @param string $value Raw parameter value.
+	 * @return string Comma-separated safe columns (empty string selects everything).
+	 */
+	public function sanitize_fields( $value ) {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return '';
+		}
+
+		$requested = array_map( 'trim', explode( ',', $value ) );
+		$safe      = array_intersect( $requested, self::ALLOWED_FIELDS );
+
+		return implode( ',', $safe );
 	}
 
 	/**
