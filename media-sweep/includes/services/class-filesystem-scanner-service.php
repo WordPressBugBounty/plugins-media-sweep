@@ -361,6 +361,14 @@ class Filesystem_Scanner_Service extends Base_Scanner_Service implements Filesys
 		}
 
 		foreach ( $file_paths as $relative_path ) {
+			// A non-string entry would be a TypeError in ltrim() below and
+			// would take down the whole batch; count it and move on.
+			if ( ! is_string( $relative_path ) ) {
+				++$result['errors'];
+				++$result['processed'];
+				continue;
+			}
+
 			// Yield before the request budget runs out; the client re-sends
 			// the unprocessed remainder.
 			if ( $budget->should_stop() ) {

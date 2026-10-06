@@ -9,6 +9,7 @@ namespace Media_Sweep\REST_API\V1;
 
 use Media_Sweep\REST_API\V1\REST_Controller;
 use Media_Sweep\Models\File_Scan_Model;
+use Media_Sweep\Models\File_Model;
 use WP_REST_Server;
 use WP_Error;
 use WP_REST_Response;
@@ -246,14 +247,8 @@ class Scan_Files_Controller extends REST_Controller {
 		$search   = $request->get_param( 'search' );
 		$query    = File_Scan_Model::query();
 
-		// Load relationships
-		$relations = array(
-			'file' => array(
-				'columns' => array( 'id', 'filepath', 'file_type', 'size_bytes', 'attachment_id', 'thumb_of', 'status', 'updated_at' ),
-			),
-		);
-
-		$query->with( $relations );
+		// Columns of the related file row, loaded in one grouped query after the page is fetched.
+		$file_columns = array( 'id', 'filepath', 'file_type', 'size_bytes', 'attachment_id', 'thumb_of', 'status', 'updated_at' );
 
 		if ( $scan_id ) {
 			$query->where( 'scan_id', '=', $scan_id );
@@ -290,6 +285,34 @@ class Scan_Files_Controller extends REST_Controller {
 		}
 
 		$scan_files = $query->paginate( $per_page, $page );
+
+		// Deliberately not with(): the builder loads a relation one query per row, so a page of
+		// 100 files cost 100 queries. One grouped query for the whole page instead.
+		$scan_file_models = $scan_files->items();
+		$file_ids         = array();
+
+		foreach ( $scan_file_models as $scan_file_model ) {
+			$related_id = (int) $scan_file_model->file_id;
+
+			if ( $related_id > 0 ) {
+				$file_ids[ $related_id ] = true;
+			}
+		}
+
+		$files = array();
+
+		// where_in() with an empty array builds `IN ()`, which is a SQL error.
+		if ( ! empty( $file_ids ) ) {
+			foreach ( File_Model::where_in( 'id', array_keys( $file_ids ) )->select( $file_columns )->get() as $file ) {
+				$files[ (int) $file->id ] = $file;
+			}
+		}
+
+		foreach ( $scan_file_models as $scan_file_model ) {
+			$related_id = (int) $scan_file_model->file_id;
+
+			$scan_file_model->set_relation( 'file', isset( $files[ $related_id ] ) ? $files[ $related_id ] : null );
+		}
 
 		$result = $scan_files->to_array();
 
@@ -340,10 +363,10 @@ class Scan_Files_Controller extends REST_Controller {
 		} catch ( \Exception $e ) {
 			return new WP_Error(
 				'scan_file_creation_failed',
-				__( 'Validation failed', 'media-sweep' ),
+				'' !== $e->getMessage() ? $e->getMessage() : __( 'Validation failed', 'media-sweep' ),
 				array(
 					'status' => 400,
-					'errors' => $e->errors(),
+					'errors' => method_exists( $e, 'errors' ) ? $e->errors() : array(),
 				)
 			);
 		}
@@ -412,10 +435,10 @@ class Scan_Files_Controller extends REST_Controller {
 		} catch ( \Exception $e ) {
 			return new WP_Error(
 				'scan_file_update_failed',
-				__( 'Validation failed', 'media-sweep' ),
+				'' !== $e->getMessage() ? $e->getMessage() : __( 'Validation failed', 'media-sweep' ),
 				array(
 					'status' => 400,
-					'errors' => $e->errors(),
+					'errors' => method_exists( $e, 'errors' ) ? $e->errors() : array(),
 				)
 			);
 		}
@@ -506,7 +529,7 @@ class Scan_Files_Controller extends REST_Controller {
 				__( 'Bulk update failed', 'media-sweep' ),
 				array(
 					'status' => 400,
-					'errors' => $e->errors(),
+					'errors' => method_exists( $e, 'errors' ) ? $e->errors() : array(),
 				)
 			);
 		}

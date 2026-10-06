@@ -134,6 +134,12 @@ class Action_Service {
 				if ( isset( $process_result['reason'] ) && 'in_use' === $process_result['reason'] ) {
 					++$result['skipped_in_use'];
 				}
+				// A skip that carries a message explains itself. It rides the same
+				// list as the failures so callers have one place to read reasons;
+				// the errors count is untouched, so a skip is still not a failure.
+				if ( ! empty( $process_result['error'] ) ) {
+					$result['error_details'][] = $process_result['error'];
+				}
 			} else {
 				++$result['errors'];
 				$result['error_details'][] = $process_result['error'];
@@ -322,12 +328,23 @@ class Action_Service {
 		// Only restore files that are not_in_media
 		if ( 'not_in_media' !== $file_scan->status ) {
 			$result['skipped'] = true;
+			$result['error']   = sprintf(
+				/* translators: %1$s is the file name, %2$s is the verdict the scan recorded */
+				__( 'Skipped "%1$s": the scan recorded this file with status "%2$s". Only files the scan found on disk but NOT in the Media Library can be restored by this ability.', 'media-sweep' ),
+				basename( (string) $file->filepath ),
+				(string) $file_scan->status
+			);
 			return $result;
 		}
 
 		// Skip if file is already active (restored)
 		if ( $file->status === 'active' ) {
 			$result['skipped'] = true;
+			$result['error']   = sprintf(
+				/* translators: %s is the file name */
+				__( 'Skipped "%s": the file is still active on disk and in the plugin\'s file table, so there is nothing to put back. A file deleted by a sweep cannot be restored through this ability at all, because deleting it removes its file scan records - use the Media Sweep trash screen in wp-admin instead.', 'media-sweep' ),
+				basename( (string) $file->filepath )
+			);
 			return $result;
 		}
 

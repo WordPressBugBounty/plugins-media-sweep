@@ -163,6 +163,7 @@ class Service_Container {
 		$this->register( 'reference_store', Services\Reference_Store::class, true );
 		$this->register( 'reference_extractor_service', Services\Reference_Extractor_Service::class, true );
 		$this->register( 'scan_runner_service', Services\Scan_Runner_Service::class, true );
+		$this->register( 'scan_driver_service', Services\Scan_Driver_Service::class, true );
 
 		// Register scanner services
 		$this->register( 'media_scanner_service', Media_Scanner_Service::class, true );

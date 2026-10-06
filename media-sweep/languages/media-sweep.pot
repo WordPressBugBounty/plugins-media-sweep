@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Sweep 1.1.4\n"
+"Project-Id-Version: Media Sweep 1.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-sweep\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-21T19:49:00+00:00\n"
+"POT-Creation-Date: 2026-09-08T16:09:25+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-sweep\n"
@@ -38,6 +38,679 @@ msgstr ""
 #. Author URI of the plugin
 #: media-sweep.php
 msgid "https://wpcreatix.com/"
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:77
+msgid "Media Sweep (Audit)"
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:78
+msgid "Read-only inspection of scans, findings, evidence, trash contents and server capacity. Nothing in this category changes or deletes anything."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:85
+msgid "Media Sweep (Actions)"
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:86
+msgid "Operations that run scans or move and delete media files. Everything here writes."
+msgstr ""
+
+#. translators: 1: audit category slug, 2: actions category slug
+#: includes/abilities/class-abilities-module.php:104
+#, php-format
+msgid "Media Sweep abilities were not registered because the \"%1$s\" or \"%2$s\" category is missing."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:293
+msgid "was not registered."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:315
+msgid "is annotated both destructive and idempotent."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:319
+msgid "is annotated both readonly and destructive."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:325
+msgid "is destructive but is not opted out of MCP."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:329
+msgid "is destructive but requires no confirmation field."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:334
+msgid "is not in a Media Sweep category."
+msgstr ""
+
+#: includes/abilities/class-abilities-module.php:340
+msgid "declares a \"force\" input property."
+msgstr ""
+
+#. translators: 1: ability name, 2: description of the problem
+#: includes/abilities/class-abilities-module.php:373
+#, php-format
+msgid "Ability \"%1$s\" %2$s"
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:64
+msgid "List scan files"
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:65
+msgid "Lists the files one scan recorded, each with its path, type, size in bytes and Media Library attachment ID, so a person can see what a sweep would actually touch before anything is deleted. The status vocabulary: \"in_use\" means the scanner found at least one reference to the file and it must not be swept; \"unused\" means the file is in the Media Library but no reference to it was found anywhere; \"orphaned\" means a Media Library record whose file is no longer on disk; \"in_media\" means a file found on disk that does have a Media Library record; \"not_in_media\" means a file found on disk with no Media Library record at all. The response is one page of rows plus a totals block counting every status in the scan. Because this ability is read-only its run endpoint is a GET and the input is read from the query string, so bracket-encode it: ?input[scan_id]=12&input[status]=unused&input[per_page]=50."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:73
+msgid "ID of the scan to read, from media-sweep/list-scans."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:78
+msgid "Return only files carrying this verdict. Omit to return every file in the scan."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:82
+msgid "Substring match on the file path."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:87
+#: includes/abilities/class-audit-abilities.php:271
+msgid "Page of results to return. Defaults to 1."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:93
+msgid "Rows per page, 1 to 100. Defaults to 25."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:98
+msgid "Column to sort by: id, scan_id, file_id, status or recorded_at. Defaults to id."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:103
+msgid "Sort direction. Defaults to desc."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:141
+msgid "Explain file usage"
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:142
+msgid "Returns one scan finding with its scan and file relations and a rendered \"notes\" array. This is how an agent JUSTIFIES a deletion instead of asserting one: every note is a concrete reference the scanner actually found. The formats are \"content:123\" (used in the content of post 123), \"featured:123\" (the featured image of post 123), \"custom_field:key:123\" (stored in the \"key\" custom field of post 123), \"gallery_block:123\" (inside a gallery on post 123), \"option:site_icon\" (stored in a WordPress option) and \"table:x.y\" (found in column y of database table x). At most ten notes are kept per file, so a heavily reused file shows a sample rather than every reference. The notes are rendered while the scan is still running: once media-sweep/finish-scan has purged the raw reference index they can no longer be re-rendered, so read the evidence before finishing a scan. Read-only, so the run endpoint is a GET with bracket-encoded input: ?input[file_scan_id]=4567."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:150
+msgid "ID of the scan finding, taken from the \"id\" column of media-sweep/list-scan-files. This is not the attachment ID and not the file ID."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:162
+msgid "No file_scan_id was supplied."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:165
+msgid "Read the \"id\" column of media-sweep/list-scan-files and pass it as file_scan_id. This is not the attachment ID and not the file ID."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:190
+msgid "Get trash stats"
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:191
+msgid "Reports how many files are sitting in the Media Sweep trash and how many bytes they occupy. This is the number a human must see before approving anything destructive, because the trash is the plugin's only undo: media-sweep/delete-scanned-files moves the original file there rather than unlinking it, so a file still in the trash can be restored and a file that has left it cannot. Takes no input."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:205
+msgid "Number of files currently in the trash."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:209
+msgid "Total size of those files, in bytes."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:213
+msgid "The same total formatted for a person, e.g. \"1.2 GB\"."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:225
+msgid "The Media Sweep trash could not be measured."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:228
+msgid "The trash folder under wp-content/uploads/mswp-trash is missing or unreadable. Do not read this as an empty trash: an unreadable trash means an earlier sweep may not be recoverable, so report it rather than proposing another deletion."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:262
+msgid "List trash files"
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:263
+msgid "Lists the files currently sitting in the Media Sweep trash, with filters for file type, directory, filename substring and minimum age. Each item carries an \"age_days\" value, so this is the way to preview exactly which files an age-based purge would reach. Warning: every call walks the whole trash folder on disk recursively, so keep per_page modest and page through rather than asking for everything at once. Read-only, so the run endpoint is a GET with bracket-encoded input: ?input[min_age_days]=30&input[file_type]=image."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:277
+msgid "Files per page, 1 to 100. Defaults to 25. Every call is a full recursive walk, so prefer a small page."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:282
+msgid "Return only files of this type."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:286
+msgid "Return only files in this directory, relative to the trash root, e.g. \"2024/06\"."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:290
+msgid "Substring match on the file name."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:295
+msgid "Return only files that have been in the trash for at least this many days."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:322
+msgid "The Media Sweep trash could not be listed."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:325
+msgid "The trash folder under wp-content/uploads/mswp-trash could not be walked. Check whether it exists at all before drawing any conclusion about what is recoverable."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:350
+msgid "Get server capacity"
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:351
+msgid "Reports this server's measured PHP time and memory headroom together with the batch size Media Sweep recommends for it. Pick the batch_size for media-sweep/delete-scanned-files from this measurement rather than guessing: too large a batch on a constrained host times out mid-sweep, which leaves the run half finished and forces a resume. Takes no input."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:365
+msgid "Files per batch this server can be expected to handle. Note that media-sweep/delete-scanned-files caps batch_size at 50."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:369
+msgid "Raw server measurements: maximum execution time in seconds and memory limit in megabytes."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:385
+msgid "Server capacity could not be measured."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:388
+msgid "No measurement is available, so do not guess a large batch. Use a batch_size of 10 for any batched Media Sweep operation until this reports again."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:412
+msgid "Get settings"
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:413
+msgid "Reads the two Media Sweep settings: \"auto_delete_after_days\", the age at which trashed files are permanently removed, and \"delete_data_on_uninstall\", whether uninstalling the plugin destroys its data. Read this early, because both describe destruction that later happens without anybody being asked again. This ability is read-only ON PURPOSE and there is deliberately no write counterpart: writing auto_delete_after_days arms a daily cron that permanently deletes trash files, and writing delete_data_on_uninstall arms the table-dropping branch of uninstall, so neither is reachable from an ability and both stay a human decision in wp-admin. Takes no input."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:427
+msgid "Days a file stays in the trash before the daily cron deletes it permanently. 0 disables that cron entirely."
+msgstr ""
+
+#: includes/abilities/class-audit-abilities.php:431
+msgid "Whether uninstalling the plugin drops its tables, deletes its options and empties the trash folder."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:46
+msgid "List Media Sweep scans"
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:47
+msgid "Lists past and running scans with their mode, status and phase. Use it to find a scan_id before asking for a status or a report. Read-only."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:54
+msgid "Page of the collection to return. Starts at 1."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:59
+msgid "Scans per page, 1 to 100."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:65
+msgid "Limit results to one scan mode, for example media_library or file_system."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:73
+msgid "Column to sort by."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:78
+msgid "Sort direction."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:111
+msgid "Get scan status"
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:112
+msgid "Returns the live phase, progress counts and status of one scan. This is the wait-loop primitive: poll it while a scan runs. When is_stale is true the heartbeat is older than 120 seconds, which means the driver stopped - resume the scan rather than keep polling."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:119
+msgid "ID of the scan to inspect."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:134
+msgid "Current phase of the scan. Null on a scan row that has not recorded one yet."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:140
+msgid "Lifecycle status: running, paused, completed or failed."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:144
+#: includes/abilities/class-scan-abilities.php:629
+msgid "Progress counters for the current phase."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:148
+msgid "Whether the scan can be resumed from its checkpoint."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:152
+msgid "True when the last tick is older than 120 seconds."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:166
+#: includes/abilities/class-scan-abilities.php:217
+#: includes/abilities/class-scan-abilities.php:475
+msgid "No scan exists with that ID."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:191
+msgid "Get scan report"
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:192
+msgid "Returns the counts a scan produced: how many files are in the Media Library, how many are not, and how many are in use, unused or orphaned. Read-only, and safe to call on a scan that has not finished yet - the counts simply reflect what has been recorded so far."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:199
+msgid "ID of the scan to report on."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:261
+msgid "Start a scan"
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:262
+msgid "Starts a new scan and returns its scan_id. Writes only this plugin's own tables and deletes nothing. The scan does not advance on its own: drive it with media-sweep/run-scan (or media-sweep/run-scan-tick) until done is true, then call media-sweep/finish-scan to seal it and get the report."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:269
+msgid "Which scan to run. media_library finds Media Library attachments that nothing references. The filesystem scan is not offered here because its enumeration step is driven from the browser (/media-sweep/v1/scanner/{id}/main-structure, /folder-recursive, /process-batch) and is not exposed as an ability, so it has to be run from the Media Sweep screen in wp-admin."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:274
+msgid "Also read every other database table column looking for references. Much slower and much more thorough. Cost, not danger. Omit it and the scanner keeps its own default: media_library scans shallow."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:285
+msgid "ID of the new scan."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:289
+msgid "Scan mode that was started."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:293
+msgid "Lifecycle status of the new scan."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:319
+msgid "The scan record could not be created."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:344
+msgid "Run one scan tick"
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:345
+msgid "Advances a scan by one short, time-budgeted slice and returns the new phase and progress. Call it repeatedly until done is true. It is genuinely idempotent: the checkpoint is owned by the server, reference inserts are UNIQUE-keyed, a transient lock makes a concurrent call return locked: true instead of running the slice twice, and a shutdown handler pauses the scan rather than killing it. On locked: true, wait retry_after_ms and call again."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:352
+#: includes/abilities/class-scan-abilities.php:407
+msgid "ID of the scan to advance."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:357
+msgid "How many seconds a previous request survived on this host. The server takes a slice comfortably inside that ceiling."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:399
+msgid "Run a scan for a few seconds"
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:400
+msgid "Runs several scan ticks inside one request so an agent does not burn forty tool calls on one scan. It is still bounded - max_seconds is clamped to 5-15 - so it usually returns with done still false. Keep calling it until done is true. On a slow or constrained host prefer media-sweep/run-scan-tick, which takes the smallest possible slice. On locked: true, wait retry_after_ms and call again."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:412
+msgid "Wall-clock budget for the whole loop, 5 to 15 seconds. Kept small so the request finishes well inside shared-hosting and gateway timeouts."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:443
+msgid "Finish a scan"
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:444
+msgid "Seals a finished scan and returns its final counts. Sealing the scan PURGES its raw reference index (mswp_scan_refs), so per-file evidence can no longer be re-rendered from raw references afterwards. Notes already written onto file rows survive. Call media-sweep/explain-file-usage for anything you need to justify before finishing."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:451
+msgid "ID of the scan to seal."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:519
+msgid "This is a file_system scan, and its counts cannot be read through abilities."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:541
+msgid "Files on disk that are in the Media Library."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:545
+msgid "Files on disk that are not in the Media Library."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:549
+msgid "Files something references."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:553
+msgid "Files nothing references."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:557
+msgid "Attachment records whose file is missing."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:561
+msgid "Total files recorded for the scan."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:599
+msgid "How many ticks ran inside this request."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:621
+msgid "Phase the scan is in after this call. Null when the row has not recorded a phase yet."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:625
+msgid "True when no further ticks are needed."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:633
+msgid "Milliseconds spent inside this call."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:637
+msgid "True when another worker holds the scan lock and nothing was run."
+msgstr ""
+
+#: includes/abilities/class-scan-abilities.php:645
+msgid "Milliseconds to wait before calling again after a lock. Null when nothing was locked."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:66
+msgid "Preview a media sweep"
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:67
+msgid "Dry run for media-sweep/delete-scanned-files. It touches nothing: no file is moved, no row is written, not one transient is set. It resolves exactly which scanned files a sweep would cover and reports the real blast radius - total bytes, a breakdown by file type, a sample of paths, how many Media Library attachments are involved and how many generated thumbnails would be destroyed permanently - then returns a single-use confirmation token bound to that exact set of files. One call returns at most 50 file IDs, which is the most one delete call accepts, so the plan it mints is always sweepable exactly as returned; matching_total reports how many files match the filter altogether. Sweep a larger set one batch at a time: preview, sweep, then preview again with the next_offset this ability returns. media-sweep/delete-scanned-files accepts only an explicit list of IDs and refuses to run without this token, so this ability must run first and a human must see the numbers before anything is deleted."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:75
+msgid "Scan whose findings the plan is built from."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:80
+msgid "Only include files the scan gave this verdict. Ignored when \"ids\" is supplied."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:85
+msgid "Restrict the plan to these file_scan IDs."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:91
+msgid "How many matching files this plan covers, 1 to 50. Defaults to 50, which is the most one delete call accepts."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:96
+msgid "How many matching files to skip before building the plan. Use next_offset from the previous preview to walk a large candidate set batch by batch. Defaults to 0."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:129
+msgid "Delete scanned files"
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:130
+msgid "Sweeps an explicit, previewed list of scanned files. Requires a confirmation_token minted by media-sweep/preview-sweep for this exact set of files, plus a confirm_file_count equal to the total that preview reported. The file itself is MOVED to the plugin trash and can be restored, but this also calls wp_delete_attachment with force: the attachment post and every generated thumbnail are destroyed permanently, and a later restore creates a NEW attachment ID, so posts referencing the old ID stay broken. Emptying the trash is not available through abilities, so the trash always remains as the undo. Files the scan reports as in use are skipped and counted in skipped_in_use; there is no override for that guard."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:141
+msgid "The exact file_scan IDs to sweep, as returned by media-sweep/preview-sweep. There is no status filter and no \"all matching\" form: only an explicit list is accepted."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:146
+msgid "Scan the files belong to. Part of the plan fingerprint, so it must match the scan the preview ran against."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:152
+msgid "The token returned by media-sweep/preview-sweep for this exact set of files."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:157
+msgid "Must equal the total reported by preview-sweep. A boolean is set reflexively by a model; a count can only be obtained by having read the preview."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:162
+#: includes/abilities/class-sweep-abilities.php:214
+msgid "Index into file_scan_ids to start at. Use the resume_index from the previous call. Default 0."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:168
+#: includes/abilities/class-sweep-abilities.php:220
+msgid "How many files to process in this call. Default 10."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:197
+msgid "Restore scanned files"
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:198
+msgid "Re-imports a scanned file into the Media Library. It acts only on a file_scan row still marked \"not_in_media\" whose file record the plugin has trashed: that file is lifted out of the plugin trash and imported as a NEW attachment. A file that is still active on disk is NOT re-imported - it is counted in skipped, with the reason in error_details - and a file already swept cannot be reached here at all, because a sweep removes its file_scan rows; the Media Sweep trash screen in wp-admin is the undo for that. This is the recovery path, so it needs no confirmation token: the restore itself re-checks every target and skips anything it cannot restore. Restored attachments receive a NEW attachment ID; posts that referenced the old ID stay broken."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:209
+msgid "The file_scan IDs to restore. Only rows still marked \"not_in_media\" are acted on."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:269
+msgid "No scanned files match this plan."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:272
+msgid "This scan has no files with that verdict, or the supplied IDs belong to another scan. Read the per-status counts with media-sweep/get-scan-report before previewing again."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:291
+msgid "The offset is past the last matching file, so this plan covers nothing."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:295
+msgid "Fewer files match than the offset skips. Preview again from offset 0 and walk forward with the next_offset each preview returns."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:314
+msgid "Show a human these numbers first. Then sweep by passing file_scan_ids exactly as returned here, together with confirmation_token, scan_id, and confirm_file_count set to \"total\". The token is bound to this exact set of files, so changing the list invalidates it."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:327
+msgid "More files match than one delete call accepts. Sweep this batch first, then preview the next one with the offset below to mint its own token."
+msgstr ""
+
+#. translators: 1: number of IDs in the request, 2: number the caller confirmed
+#: includes/abilities/class-sweep-abilities.php:394
+#, php-format
+msgid "This call lists %1$d files but confirm_file_count says %2$d. Nothing was deleted."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:400
+msgid "confirm_file_count must equal the \"total\" that media-sweep/preview-sweep reported for this exact set of files. Do not compute or guess it: run the preview and copy the number it returns."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:409
+msgid "This confirmation token does not match the files in this request. Nothing was deleted."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:412
+msgid "The file set changed since the preview, or the plan expired. The token is bound to one exact list of file_scan IDs, one scan and one user, and it is only good for 15 to 30 minutes. Run media-sweep/preview-sweep again for the files you actually want to sweep and use the token it returns."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:429
+msgid "The server is short of memory or time, so nothing was swept and the confirmation token was not spent."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:432
+msgid "Wait a few seconds and call this ability again with exactly the same input, including the same confirmation_token: it has not been used. If this repeats, read media-sweep/get-server-capacity and lower batch_size."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:444
+msgid "This confirmation token has already been used. Nothing was deleted."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:447
+msgid "Each plan authorises exactly one sweep, so a retry - including resuming a partly processed batch - needs a fresh token. Run media-sweep/preview-sweep again and read the new numbers before sweeping."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:618
+msgid "The batch is not finished, and the confirmation token was single use. Re-previewing the SAME list mints the same, already-spent token, so the new preview must cover exactly the file_scan IDs that are still unswept - the list below."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:626
+msgid "Then sweep the rest with the token that preview returns. start_index is 0 because this list already starts at the first unswept file."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:640
+msgid "The sweep finished. Read the scan report to see what each verdict counts now."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:665
+msgid "The batch is not finished. Call this ability again with the file_scan_ids below, which are the ones still unrestored. start_index is 0 because this list already starts at the first of them."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:684
+msgid "Restored files are back in the Media Library under NEW attachment IDs. List the scan files to see the current records."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:756
+msgid "Exactly the file_scan IDs this plan covers. Pass this list verbatim to media-sweep/delete-scanned-files."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:760
+msgid "Number of files in the plan. This is the value confirm_file_count must equal."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:764
+msgid "How many files match this scan_id/status/ids filter in total, ignoring limit and offset. Compare it with total to see whether more batches remain."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:768
+msgid "How many matching files were skipped before this plan was built."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:772
+msgid "The offset to pass to the next media-sweep/preview-sweep call, or null when this batch is the last one."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:776
+msgid "Total size on disk of the files in the plan."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:781
+msgid "File count keyed by file type."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:786
+msgid "Up to 25 of the file paths in the plan, so a human can sanity-check what is about to go."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:790
+msgid "How many distinct Media Library attachments the sweep would delete."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:794
+msgid "Generated thumbnails that would be destroyed permanently. Only the original files reach the trash; these do not, and they cannot be restored."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:798
+msgid "Single-use token bound to this exact set of files, this scan and this user."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:802
+msgid "How long the token stays valid."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:836
+msgid "Files examined in this call."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:840
+msgid "Files the action succeeded on."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:844
+msgid "Files that failed."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:848
+msgid "Files left alone on purpose. A skip is not a failure: a record that is already gone was already dealt with."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:852
+msgid "Of the skipped files, how many were protected because the scan reports them as in use. There is no override."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:856
+msgid "Index into file_scan_ids to pass as start_index on the next call."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:860
+msgid "Whether the whole list has been processed."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:864
+msgid "The server ran short of memory or time and stopped early. Wait, then resume from resume_index."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:869
+msgid "One message per failed file."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:902
+msgid "Ability to call next."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:906
+msgid "Why it is the sensible next step."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:911
+msgid "Input values already known for that call."
+msgstr ""
+
+#: includes/abilities/class-sweep-abilities.php:917
+msgid "Suggested follow-up abilities."
 msgstr ""
 
 #: includes/admin/class-admin-module.php:99
@@ -177,106 +850,106 @@ msgstr ""
 msgid "file_scan_ids must be a non-empty array."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:85
+#: includes/rest-api/v1/class-scan-files-controller.php:86
 msgid "Array of scan file IDs to update."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:90
+#: includes/rest-api/v1/class-scan-files-controller.php:91
 msgid "New status for the scan files."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:112
+#: includes/rest-api/v1/class-scan-files-controller.php:113
 msgid "The ID of the scan file."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:117
+#: includes/rest-api/v1/class-scan-files-controller.php:118
 #: includes/rest-api/v1/class-scans-controller.php:104
 msgid "The ID of the scan."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:122
+#: includes/rest-api/v1/class-scan-files-controller.php:123
 msgid "The ID of the file."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:127
+#: includes/rest-api/v1/class-scan-files-controller.php:128
 msgid "The status of the file in the scan."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:134
+#: includes/rest-api/v1/class-scan-files-controller.php:135
 msgid "When the file status was recorded."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:147
+#: includes/rest-api/v1/class-scan-files-controller.php:148
 #: includes/rest-api/v1/class-scans-controller.php:162
 #: includes/rest-api/v1/class-trash-controller.php:542
 msgid "Current page of the collection."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:154
+#: includes/rest-api/v1/class-scan-files-controller.php:155
 #: includes/rest-api/v1/class-scans-controller.php:169
 #: includes/rest-api/v1/class-trash-controller.php:548
 msgid "Maximum number of items to be returned in result set."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:162
+#: includes/rest-api/v1/class-scan-files-controller.php:163
 msgid "Limit results to specific scan."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:167
+#: includes/rest-api/v1/class-scan-files-controller.php:168
 msgid "Limit results to specific file."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:172
+#: includes/rest-api/v1/class-scan-files-controller.php:173
 msgid "Limit results to specific status."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:176
+#: includes/rest-api/v1/class-scan-files-controller.php:177
 #: includes/rest-api/v1/class-scans-controller.php:182
 msgid "Sort collection by object attribute."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:182
+#: includes/rest-api/v1/class-scan-files-controller.php:183
 #: includes/rest-api/v1/class-scans-controller.php:188
 msgid "Order sort attribute ascending or descending."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:188
+#: includes/rest-api/v1/class-scan-files-controller.php:189
 #: includes/rest-api/v1/class-scans-controller.php:194
 msgid "Comma-separated list of fields to include in the response."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:195
+#: includes/rest-api/v1/class-scan-files-controller.php:196
 msgid "Search for files by filepath."
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:343
-#: includes/rest-api/v1/class-scan-files-controller.php:415
+#: includes/rest-api/v1/class-scan-files-controller.php:366
+#: includes/rest-api/v1/class-scan-files-controller.php:438
 #: includes/rest-api/v1/class-scans-controller.php:284
 #: includes/rest-api/v1/class-scans-controller.php:332
 msgid "Validation failed"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:363
-#: includes/rest-api/v1/class-scan-files-controller.php:392
-#: includes/rest-api/v1/class-scan-files-controller.php:435
+#: includes/rest-api/v1/class-scan-files-controller.php:386
+#: includes/rest-api/v1/class-scan-files-controller.php:415
+#: includes/rest-api/v1/class-scan-files-controller.php:458
 msgid "Scan file not found"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:444
+#: includes/rest-api/v1/class-scan-files-controller.php:467
 msgid "Failed to delete scan file"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:458
+#: includes/rest-api/v1/class-scan-files-controller.php:481
 msgid "Invalid IDs provided"
 msgstr ""
 
 #. translators: %d is the file scan ID
-#: includes/rest-api/v1/class-scan-files-controller.php:471
+#: includes/rest-api/v1/class-scan-files-controller.php:494
 #, php-format
 msgid "Scan file with ID %d not found"
 msgstr ""
 
-#: includes/rest-api/v1/class-scan-files-controller.php:506
+#: includes/rest-api/v1/class-scan-files-controller.php:529
 msgid "Bulk update failed"
 msgstr ""
 
@@ -546,46 +1219,58 @@ msgid "Age in days."
 msgstr ""
 
 #. translators: %s is the action type
-#: includes/services/class-action-service.php:189
+#: includes/services/class-action-service.php:195
 #, php-format
 msgid "Unknown action type: %s"
 msgstr ""
 
 #. translators: %1$s is the file path, %2$s is the error message
-#: includes/services/class-action-service.php:197
+#: includes/services/class-action-service.php:203
 #, php-format
 msgid "Error processing file %1$s: %2$s"
 msgstr ""
 
 #. translators: %s is the file name
-#: includes/services/class-action-service.php:266
+#: includes/services/class-action-service.php:272
 #, php-format
 msgid "Skipped \"%s\": the file has changed since this scan ran, so its result may be out of date. Run a new scan before removing it."
 msgstr ""
 
+#. translators: %1$s is the file name, %2$s is the verdict the scan recorded
+#: includes/services/class-action-service.php:333
+#, php-format
+msgid "Skipped \"%1$s\": the scan recorded this file with status \"%2$s\". Only files the scan found on disk but NOT in the Media Library can be restored by this ability."
+msgstr ""
+
+#. translators: %s is the file name
+#: includes/services/class-action-service.php:345
+#, php-format
+msgid "Skipped \"%s\": the file is still active on disk and in the plugin's file table, so there is nothing to put back. A file deleted by a sweep cannot be restored through this ability at all, because deleting it removes its file scan records - use the Media Sweep trash screen in wp-admin instead."
+msgstr ""
+
 #. translators: %s is the file status
-#: includes/services/class-action-service.php:338
+#: includes/services/class-action-service.php:355
 msgid "Cannot restore deleted file"
 msgstr ""
 
 #. translators: %s is the file path
-#: includes/services/class-action-service.php:371
+#: includes/services/class-action-service.php:388
 #, php-format
 msgid "Cannot restore file - physical file missing: %s"
 msgstr ""
 
-#: includes/services/class-action-service.php:402
+#: includes/services/class-action-service.php:419
 msgid "File restored to media library"
 msgstr ""
 
 #. translators: %s is the file type
-#: includes/services/class-action-service.php:451
+#: includes/services/class-action-service.php:468
 #, php-format
 msgid "File type not allowed by WordPress: %s"
 msgstr ""
 
 #. translators: %s is the file path
-#: includes/services/class-action-service.php:462
+#: includes/services/class-action-service.php:479
 #, php-format
 msgid "File does not exist on filesystem: %s"
 msgstr ""
@@ -705,8 +1390,8 @@ msgid "Building the media reference index..."
 msgstr ""
 
 #: includes/services/class-filesystem-scanner-service.php:187
-#: includes/services/class-filesystem-scanner-service.php:368
-#: includes/services/class-filesystem-scanner-service.php:458
+#: includes/services/class-filesystem-scanner-service.php:376
+#: includes/services/class-filesystem-scanner-service.php:466
 #: includes/services/class-media-scanner-service.php:345
 msgid "Pausing before the server time limit."
 msgstr ""
@@ -724,24 +1409,24 @@ msgid "Error scanning folder %1$s: %2$s"
 msgstr ""
 
 #. translators: %d is the attachment ID
-#: includes/services/class-filesystem-scanner-service.php:487
+#: includes/services/class-filesystem-scanner-service.php:495
 #, php-format
 msgid "Found in media library (ID: %d)"
 msgstr ""
 
 #. translators: %d is the parent attachment ID
-#: includes/services/class-filesystem-scanner-service.php:511
+#: includes/services/class-filesystem-scanner-service.php:519
 #, php-format
 msgid "Thumbnail of media attachment (ID: %d)"
 msgstr ""
 
 #. translators: %d is the parent attachment ID
-#: includes/services/class-filesystem-scanner-service.php:524
+#: includes/services/class-filesystem-scanner-service.php:532
 #, php-format
 msgid "Parent media attachment no longer exists (ID: %d)"
 msgstr ""
 
-#: includes/services/class-filesystem-scanner-service.php:584
+#: includes/services/class-filesystem-scanner-service.php:592
 msgid "No usage found - appears to be orphaned"
 msgstr ""
 

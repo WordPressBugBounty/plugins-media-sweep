@@ -281,10 +281,10 @@ class Scans_Controller extends REST_Controller {
 		} catch ( \Exception $e ) {
 			return new WP_Error(
 				'scan_creation_failed',
-				__( 'Validation failed', 'media-sweep' ),
+				'' !== $e->getMessage() ? $e->getMessage() : __( 'Validation failed', 'media-sweep' ),
 				array(
 					'status' => 400,
-					'errors' => $e->errors(),
+					'errors' => method_exists( $e, 'errors' ) ? $e->errors() : array(),
 				)
 			);
 		}
@@ -329,10 +329,10 @@ class Scans_Controller extends REST_Controller {
 		} catch ( \Exception $e ) {
 			return new WP_Error(
 				'scan_update_failed',
-				__( 'Validation failed', 'media-sweep' ),
+				'' !== $e->getMessage() ? $e->getMessage() : __( 'Validation failed', 'media-sweep' ),
 				array(
 					'status' => 400,
-					'errors' => $e->errors(),
+					'errors' => method_exists( $e, 'errors' ) ? $e->errors() : array(),
 				)
 			);
 		}

@@ -2,14 +2,14 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.1.4
+Stable tag: 1.2.0
 Requires at least: 5.8
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
 License: GPL-2.0-or-later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Clean up your WordPress Media Library by finding and removing unused files. Safely scan, preview, and sweep away orphaned media to keep your site fast and organized.
+Clean up your WordPress Media Library by finding and removing unused media. Scan, preview, then sweep away orphaned files to keep your site fast.
 
 == Description ==
 
@@ -27,6 +27,7 @@ Perfect for bloggers, agencies, e-commerce sites, and any WordPress website look
 ✅ **Smart Detection** – Advanced algorithms identify truly unused files
 ✅ **Batch Operations** – Process multiple files efficiently
 ✅ **Detailed Analytics** – Comprehensive scan reports and file insights
+✅ **AI Assistant Ready** – Audit scans and preview cleanups from Claude or Cursor over MCP; deleting stays off by default
 
 ## 🎯 Core Features
 
@@ -106,6 +107,35 @@ Perfect for bloggers, agencies, e-commerce sites, and any WordPress website look
 * **Performance Settings** – Adjust batch sizes and resource limits
 * **Automation Rules** – Set up automatic cleanup schedules (planned for future versions)
 
+## 🤖 Works with AI Assistants (Claude and Cursor via MCP)
+
+Media Sweep registers its scan, report and cleanup operations with the WordPress Abilities API, which is part of WordPress core since 6.9. Install the free MCP Adapter plugin from the WordPress project and MCP clients that sign in with a WordPress Application Password (Claude Desktop, Claude Code, Cursor) can audit your Media Library in plain English. Verified with Claude Code.
+
+**What an AI assistant can do:**
+
+* Start a Media Library scan, run it to the end and read the counts: in use, unused, orphaned
+* List past scans and check the progress of a running one
+* List the files a scan found, with path, size, type and verdict
+* Explain why a file counts as in use, naming the post, custom field or option that references it
+* Preview a cleanup before anything moves: how many files, how much space, how many attachments and thumbnails it would touch
+* See what is in the trash and how much space it holds
+* Check your server's headroom and get a recommended batch size
+* Read the two settings that arm automatic deletion, so it can warn you they are on
+* Put files found on disk but missing from the library back into the Media Library
+
+*"Scan the Media Library and tell me how much space the unused files take."*
+*"Why is hero-2019.jpg marked as in use?"*
+*"Preview a cleanup of the unused images from the last scan and show me the numbers."*
+
+**What it deliberately cannot do:**
+
+* Delete files over MCP. Deletion is off by default; you can opt in with your own code. Even then, a delete needs a confirmation token minted by a preview of the exact file list, in-use files are always skipped, and the originals go to the Media Sweep trash like any other sweep.
+* Empty the trash, delete a single trash file, purge old trash, delete scan records, change a file's verdict or change settings. None of these are exposed to agents at all, so the site always keeps an undo.
+* Run a File System scan. That one stays in wp-admin.
+* Act as anyone but an administrator. Every operation checks the administrator capability, and a filter can require more than that, never less.
+
+**What you need:** WordPress 6.9 or newer, the free [MCP Adapter](https://github.com/WordPress/mcp-adapter) plugin (not bundled with Media Sweep and not required), and a WordPress Application Password for a dedicated admin user (Users > Profile > Application Passwords). WP-CLI works on the same machine. Nothing changes for sites that skip this: on older WordPress, or without the adapter, Media Sweep runs exactly as before, and nothing leaves your server.
+
 ## 💡 Perfect For
 
 * **Content Creators** – Bloggers and publishers with large media libraries
@@ -162,6 +192,9 @@ No, Media Sweep only runs when you initiate a scan and includes intelligent reso
 **Can I schedule automatic cleanups?**
 Currently, Media Sweep requires manual scan initiation. Automatic scheduling may be added in future versions.
 
+**Does Media Sweep work with Claude, Cursor or other AI assistants (MCP)?**
+Yes, on WordPress 6.9 or newer with the free MCP Adapter plugin from the WordPress project. An assistant can run a Media Library scan, read the results, explain why a file is in use and preview a cleanup. Deleting files is off by default, emptying the trash is never exposed, and every call needs an administrator Application Password. Without the adapter nothing changes.
+
 == Screenshots ==
 
 1. **Dashboard Overview** – Clean, intuitive interface showing scan history and quick actions
@@ -172,6 +205,10 @@ Currently, Media Sweep requires manual scan initiation. Automatic scheduling may
 6. **Trash Management** – Safe file removal with easy restore capabilities
 
 == Changelog ==
+
+= 1.2.0 =
+* New: WordPress Abilities API support — AI agents and MCP clients can run scans and read findings and the trash. Sweeping files is off MCP by default and needs a preview-minted confirmation; emptying the trash is never exposed.
+* Fixed: an image referenced only by ID in a plugin or theme option (for example the WooCommerce placeholder image) was reported as unused and offered for deletion.
 
 = 1.1.4 =
 * Security: hardened input validation on the scan data endpoints. Updating is recommended.

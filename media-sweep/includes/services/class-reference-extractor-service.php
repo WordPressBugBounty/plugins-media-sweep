@@ -238,6 +238,36 @@ class Reference_Extractor_Service {
 				}
 			}
 
+			// Any other option whose name says it holds media: a bare numeric value
+			// is an attachment ID (WooCommerce placeholder, plugin default images).
+			// Dimension and crop settings share those words, so they are skipped.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- static query, table name from $wpdb.
+			$media_rows = $wpdb->get_results(
+				"SELECT option_name, option_value FROM {$wpdb->options}
+				 WHERE option_name REGEXP 'logo|image|icon|background|thumbnail|attachment|media'
+				   AND option_name NOT LIKE 'widget\_%'
+				   AND option_name NOT LIKE 'theme\_mods\_%'
+				   AND option_name NOT LIKE '\_transient\_%'
+				   AND option_name NOT LIKE '\_site\_transient\_%'"
+			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			foreach ( $media_rows as $media_row ) {
+				if ( preg_match( '/(_w|_h|_width|_height|_crop|_cropping|_size|_sizes|_align|_link_type|_quality)$/i', $media_row->option_name ) ) {
+					continue;
+				}
+
+				$value = maybe_unserialize( $media_row->option_value );
+
+				if ( is_array( $value ) ) {
+					$this->extract_from_value_blob( $scan_id, $value, 'option:' . $media_row->option_name );
+					continue;
+				}
+
+				if ( is_numeric( $value ) && (int) $value > 0 ) {
+					$this->store->add_id_ref( $scan_id, (int) $value, 'option:' . $media_row->option_name );
+				}
+			}
+
 			// Current theme's mods (custom_logo, header/background images...).
 			$mods = get_option( 'theme_mods_' . get_option( 'stylesheet' ) );
 			if ( is_array( $mods ) ) {

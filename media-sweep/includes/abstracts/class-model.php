@@ -378,8 +378,16 @@ abstract class Model implements \JsonSerializable {
 		$table_name = $this->get_full_table_name();
 
 		if ( $this->exists ) {
-			$data   = $this->get_dirty_attributes();
-			$where  = array( $this->primary_key => $this->get_key() );
+			$data  = $this->get_dirty_attributes();
+			$where = array( $this->primary_key => $this->get_key() );
+
+			if ( empty( $data ) ) {
+				// Nothing changed. wpdb::update() with an empty data set builds
+				// `UPDATE t SET  WHERE id = N`, which is a SQL syntax error, so a
+				// no-op save used to throw. A save that writes nothing succeeded.
+				return $this;
+			}
+
 			$result = $wpdb->update( $table_name, $data, $where );
 
 			if ( $result === false ) {

@@ -8,6 +8,7 @@
 namespace Media_Sweep;
 
 use Media_Sweep\Traits\Singleton;
+use Media_Sweep\Abilities\Abilities_Module;
 use Media_Sweep\Admin\Admin_Module;
 use Media_Sweep\Database\Database_Module;
 use Media_Sweep\REST_API\REST_API_Module;
@@ -193,6 +194,7 @@ class Module_Loader {
 		$this->register_module( 'admin_loader', Admin_Module::class, array( 'admin' => true ), true );
 		$this->register_module( 'database', Database_Module::class, array(), true );
 		$this->register_module( 'rest_api', REST_API_Module::class, array(), true );
+		$this->register_module( 'abilities', Abilities_Module::class, array(), true );
 
 		// Allow developers to register modules.
 		do_action( 'media_sweep_register_modules', $this );

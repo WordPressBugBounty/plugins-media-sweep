@@ -151,6 +151,15 @@ class Scan_Runner_Service {
 				// for the tick loop - the client takes over from here.
 				$done = true;
 			}
+
+			$scan->update(
+				array(
+					'status'       => Scan_Model::STATUS_RUNNING,
+					'checkpoint'   => $checkpoint,
+					'phase'        => $phase,
+					'last_tick_at' => current_time( 'mysql' ),
+				)
+			);
 		} catch ( \Throwable $e ) {
 			$scan->update(
 				array(
@@ -160,8 +169,6 @@ class Scan_Runner_Service {
 					'last_tick_at' => current_time( 'mysql' ),
 				)
 			);
-			delete_transient( $lock_key );
-			self::$active_scan_id = null;
 
 			return new \WP_Error(
 				'tick_failed',
@@ -172,19 +179,12 @@ class Scan_Runner_Service {
 					'phase'     => $phase,
 				)
 			);
+		} finally {
+			// Every exit path releases the lock; a throw from the post-loop
+			// update used to strand it for the full LOCK_SECONDS.
+			delete_transient( $lock_key );
+			self::$active_scan_id = null;
 		}
-
-		$scan->update(
-			array(
-				'status'       => Scan_Model::STATUS_RUNNING,
-				'checkpoint'   => $checkpoint,
-				'phase'        => $phase,
-				'last_tick_at' => current_time( 'mysql' ),
-			)
-		);
-
-		delete_transient( $lock_key );
-		self::$active_scan_id = null;
 
 		return array(
 			'success'    => true,
