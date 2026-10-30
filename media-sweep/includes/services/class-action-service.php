@@ -71,29 +71,24 @@ class Action_Service {
 		$total_files = count( $file_scan_ids );
 
 		$result = array(
-			'success'       => true,
-			'processed'     => 0,
-			'success_count' => 0,
-			'errors'        => 0,
-			'skipped'       => 0,
+			'success'        => true,
+			'processed'      => 0,
+			'success_count'  => 0,
+			'errors'         => 0,
+			'skipped'        => 0,
 			// Of the skipped, how many were left alone purely because they are reported as in use. The UI
 			// words its own message from this, so nothing English is sent from here.
 			'skipped_in_use' => 0,
-			'should_pause'  => false,
-			'pause_reason'  => '',
-			'is_complete'   => false,
-			'resume_index'  => $start_index,
-			'total'         => $total_files,
-			'error_details' => array(),
+			'should_pause'   => false,
+			'pause_reason'   => '',
+			'is_complete'    => false,
+			'resume_index'   => $start_index,
+			'total'          => $total_files,
+			'error_details'  => array(),
 		);
 
-		// Check if we should pause initially
-		$should_pause = $this->system_monitor->should_pause();
-		if ( $should_pause['pause'] ) {
-			$result['should_pause'] = true;
-			$result['pause_reason'] = $should_pause['reason'];
-			return $result;
-		}
+		// No resource check before the first file: every request moves at least one file forward. Checking
+		// up front let a busy server answer every request, and every retry, with nothing done at all.
 
 		// Get batch of file scan IDs to process
 		$batch_ids = array_slice( $file_scan_ids, $start_index, $batch_size );
@@ -399,7 +394,7 @@ class Action_Service {
 			// Successfully added to media library
 			// WordPress may have moved the file to a new location (e.g., uploads/2025/01/)
 			$new_relative_path = Path_Helper::ensure_relative_path( $media_library_result['new_path'] );
-			
+
 			$file->update(
 				array(
 					'filepath'      => $new_relative_path,

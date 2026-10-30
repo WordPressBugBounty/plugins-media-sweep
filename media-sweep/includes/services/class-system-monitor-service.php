@@ -48,6 +48,13 @@ class System_Monitor_Service {
 	protected $memory_limit;
 
 	/**
+	 * Memory in use when monitoring started, in bytes
+	 *
+	 * @var int
+	 */
+	protected $start_memory;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -71,14 +78,16 @@ class System_Monitor_Service {
 		$this->max_execution_time = $max_execution_time > 0 ? $max_execution_time : 30;
 
 		// Set start time
-		$this->start_time = microtime( true );
+		$this->start_time   = microtime( true );
+		$this->start_memory = memory_get_usage( true );
 	}
 
 	/**
 	 * Reset monitoring for new operation
 	 */
 	public function reset_monitoring() {
-		$this->start_time = microtime( true );
+		$this->start_time   = microtime( true );
+		$this->start_memory = memory_get_usage( true );
 	}
 
 	/**
@@ -107,7 +116,10 @@ class System_Monitor_Service {
 	public function should_pause() {
 		$resources = $this->check_system_resources();
 
-		if ( $resources['memory_usage_percent'] >= $this->memory_threshold ) {
+		// Judged on the headroom this operation has used, not on the whole request. WordPress and every
+		// other active plugin are loaded before we start, and on a heavy site that alone is past the
+		// threshold - which paused every delete before its first file, so the button did nothing.
+		if ( $resources['headroom_usage_percent'] >= $this->memory_threshold ) {
 			return array(
 				'pause'  => true,
 				'reason' => sprintf(
@@ -155,22 +167,27 @@ class System_Monitor_Service {
 		$memory_used          = memory_get_usage( true );
 		$memory_usage_percent = $memory_used / $this->memory_limit;
 
+		// Share of the memory that was free at the start which has been used since.
+		$headroom               = max( 1, $this->memory_limit - $this->start_memory );
+		$headroom_usage_percent = max( 0, $memory_used - $this->start_memory ) / $headroom;
+
 		// Time usage
 		$time_elapsed       = microtime( true ) - $this->start_time;
 		$time_usage_percent = $time_elapsed / $this->max_execution_time;
 
 		return array(
-			'memory_used'          => $memory_used,
-			'memory_limit'         => $this->memory_limit,
-			'memory_usage_percent' => $memory_usage_percent,
-			'memory_usage_mb'      => round( $memory_used / 1024 / 1024, 2 ),
-			'memory_limit_mb'      => round( $this->memory_limit / 1024 / 1024, 2 ),
-			'time_elapsed'         => $time_elapsed,
-			'time_limit'           => $this->max_execution_time,
-			'time_usage_percent'   => $time_usage_percent,
-			'time_elapsed_seconds' => round( $time_elapsed, 2 ),
-			'memory_threshold'     => $this->memory_threshold,
-			'time_threshold'       => $this->time_threshold,
+			'memory_used'            => $memory_used,
+			'memory_limit'           => $this->memory_limit,
+			'memory_usage_percent'   => $memory_usage_percent,
+			'memory_usage_mb'        => round( $memory_used / 1024 / 1024, 2 ),
+			'memory_limit_mb'        => round( $this->memory_limit / 1024 / 1024, 2 ),
+			'headroom_usage_percent' => $headroom_usage_percent,
+			'time_elapsed'           => $time_elapsed,
+			'time_limit'             => $this->max_execution_time,
+			'time_usage_percent'     => $time_usage_percent,
+			'time_elapsed_seconds'   => round( $time_elapsed, 2 ),
+			'memory_threshold'       => $this->memory_threshold,
+			'time_threshold'         => $this->time_threshold,
 		);
 	}
 

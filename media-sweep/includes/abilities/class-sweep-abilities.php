@@ -415,29 +415,6 @@ class Sweep_Abilities {
 			);
 		}
 
-		// process_batch() checks the same thing and returns having deleted
-		// nothing, so check it here first rather than burn the plan for free.
-		// The reset matters: elapsed time is measured from it, exactly as
-		// process_batch() measures it a moment later.
-		$monitor = $module->service( 'system_monitor_service' );
-		$monitor->reset_monitoring();
-		$pause = $monitor->should_pause();
-
-		if ( ! empty( $pause['pause'] ) ) {
-			return $module->agent_error(
-				'server_busy',
-				__( 'The server is short of memory or time, so nothing was swept and the confirmation token was not spent.', 'media-sweep' ),
-				array(
-					'status'     => 503,
-					'agent_hint' => __( 'Wait a few seconds and call this ability again with exactly the same input, including the same confirmation_token: it has not been used. If this repeats, read media-sweep/get-server-capacity and lower batch_size.', 'media-sweep' ),
-					'recovery'   => array(
-						'ability' => 'media-sweep/delete-scanned-files',
-						'input'   => $input,
-					),
-				)
-			);
-		}
-
 		if ( ! Sweep_Plan::consume( $token ) ) {
 			return $module->agent_error(
 				'plan_already_used',

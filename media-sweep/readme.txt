@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -206,6 +206,9 @@ Yes, on WordPress 6.9 or newer with the free MCP Adapter plugin from the WordPre
 
 == Changelog ==
 
+= 1.2.1 =
+* Fixed: on sites running close to their PHP memory limit, deleting files did nothing - single delete showed no message and bulk delete stayed at 0%. Deletion no longer counts memory used by WordPress and other plugins against itself, and always makes progress.
+
 = 1.2.0 =
 * New: WordPress Abilities API support — AI agents and MCP clients can run scans and read findings and the trash. Sweeping files is off MCP by default and needs a preview-minted confirmation; emptying the trash is never exposed.
 * Fixed: an image referenced only by ID in a plugin or theme option (for example the WooCommerce placeholder image) was reported as unused and offered for deletion.
@@ -320,6 +323,9 @@ Yes, on WordPress 6.9 or newer with the free MCP Adapter plugin from the WordPre
 * Minimal server resource usage during scans
 
 == Upgrade Notice ==
+
+= 1.2.1 =
+Fixes deleting files doing nothing on sites close to their PHP memory limit. Recommended for everyone.
 
 = 1.1.4 =
 Security hardening for the scan data endpoints. Please update.
