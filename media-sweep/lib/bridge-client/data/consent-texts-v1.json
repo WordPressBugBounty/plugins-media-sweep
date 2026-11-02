@@ -1,0 +1,157 @@
+{
+  "schema": 1,
+  "locale": "en_US",
+  "privacy_policy_version": "2026-11",
+  "_notes": [
+    "Source of truth for the v1 consent and privacy UI strings. The two consents[].text values are versioned legal texts: never edit them after launch; a change = a new version row in wcxb_consent_texts.",
+    "text_sha256 = lowercase hex sha256 of the exact UTF-8 bytes of text (no trailing newline, no HTML). The consent texts are plain ASCII on purpose so the hash is stable.",
+    "The consent texts contain NO placeholders, so one text and one hash fit every plugin. Other strings may use {named} placeholders, filled by the client.",
+    "Placeholders used outside the consent texts: {plugin_name}, {email}, {date}, {privacy_url}, {privacy_email}, {confirm_link}, {postal_address}.",
+    "D25: no admin email is collected under the usage box in v1. There is no security purpose.",
+    "The usage label is NOT 'anonymous' (02-client-protocol.md section 3 says 'Share anonymous usage data'; this file wins). The payload has the site address and a site id, so it is personal data (GDPR Art 4(1), Recital 26). Calling it anonymous would be misleading.",
+    "The usage text lists every snapshot field group in 02 section 4.3. If the client starts sending a new field group, ship a new usage text version in the same release.",
+    "card.sender_line MUST be shown on the card under the boxes: CASL request-for-consent rules (CRTC Regulations SOR/2012-36 s.4) want the business name, a mailing address and a web or email contact in the request itself. It is kept out of the hashed text so the hash does not depend on the address.",
+    "No dark patterns: both boxes unticked; Save and No thanks are the same size and style; no countdown, no guilt text; No thanks is never asked again; Save with no box ticked = No thanks.",
+    "Translations: v1 shows the two consent texts in English only (do not wrap them in __()). A translated text needs its own version and hash, for example usage-2026-11-fr. Other UI strings may be translated.",
+    "tests/contract/fixtures/*.json use placeholder hashes (ad42..., 04ca...). Replace them with the two text_sha256 values below when the client is built."
+  ],
+  "consents": [
+    {
+      "purpose": "usage",
+      "version": "usage-2026-11-en",
+      "locale": "en_US",
+      "short_label": "Share usage data",
+      "text": "Share usage data with WPCreatix (Wuzzify LLC, Cairo, Egypt) to help us improve our plugins. This choice covers all WPCreatix plugins on this site. When you click Save, then about once a week, and when one of our plugins is activated, deactivated, updated or deleted, we send: your site address, a random site id, WordPress, PHP and MySQL versions, server type, site language, theme, whether it is a live or test site, whether it is a multisite, which of our plugins you have (version, active or not, install date), your store currency and country if you use WooCommerce, whether some well-known plugins are active (from a fixed list), and rounded counts (for example 100-999 posts, or how often you use some of our features). We also see your country from your server's IP address; we do not store the IP. We never send your content, customer or order data, user names, emails or passwords. You can turn this off at any time in the plugin settings.",
+      "text_sha256": "223849eea9f25b4640ddcc7132418a27e2efc733e4f02900df2cb4c818bae5f8",
+      "details_link_text": "See exactly what is sent"
+    },
+    {
+      "purpose": "marketing",
+      "version": "marketing-2026-11-en",
+      "locale": "en_US",
+      "short_label": "Email me product news",
+      "text": "Email me news, tips and offers about WPCreatix plugins, sent by WPCreatix (Wuzzify LLC, Cairo, Egypt). We use your email address, and your first name if you give it, only for these emails. We will first send you an email to confirm. You can unsubscribe at any time with the link in every email or in the plugin settings.",
+      "text_sha256": "9180b0fd9d6cc721e4f59512929b50ebf5bd5e1ce96380dc26d4099c02fdf083",
+      "details_link_text": "Privacy policy"
+    }
+  ],
+  "card": {
+    "title": "Help us improve {plugin_name}",
+    "intro": "Both options are optional. {plugin_name} works the same if you say no. Nothing is sent until you click Save.",
+    "intro_multisite": "Your choice covers every site in this network.",
+    "email_field_label": "Email",
+    "first_name_field_label": "First name (optional)",
+    "email_invalid": "Please enter a valid email address.",
+    "preview_link": "See exactly what is sent",
+    "privacy_link": "Privacy policy",
+    "sender_line": "WPCreatix is run by Wuzzify LLC, {postal_address}, Cairo, Egypt. Web: https://wpcreatix.com. Privacy questions: {privacy_email}.",
+    "button_save": "Save",
+    "button_no_thanks": "No thanks",
+    "saved_nothing": "Saved. Nothing will be sent. You can change this later in the settings.",
+    "saved_usage": "Thanks. Usage sharing is on.",
+    "saved_marketing": "Thanks. Please check your inbox and click the link to confirm your email.",
+    "retry_notice": "We could not reach WPCreatix right now. We will try again automatically."
+  },
+  "settings": {
+    "section_title": "Data sharing",
+    "toggle_usage": "Share usage data with WPCreatix",
+    "toggle_marketing": "Email me product news",
+    "shared_note": "These settings are shared by all WPCreatix plugins on this site.",
+    "usage_status_on": "On",
+    "usage_status_off": "Off",
+    "marketing_status_label": "Email status",
+    "marketing_status": {
+      "pending": "Waiting for confirmation",
+      "confirmed": "Subscribed",
+      "unsubscribed": "Unsubscribed"
+    },
+    "marketing_status_map": {
+      "none": null,
+      "pending": "pending",
+      "confirmed": "confirmed",
+      "unsubscribed": "unsubscribed",
+      "bounced": "unsubscribed",
+      "complained": "unsubscribed",
+      "expired": "unsubscribed"
+    },
+    "marketing_status_hint": {
+      "pending": "We sent a link to {email}. Click it to confirm. Not there? Check your spam folder.",
+      "bounced": "Emails to this address could not be delivered.",
+      "complained": "This address marked one of our emails as spam, so we will not email it again.",
+      "expired": "The email was not confirmed within 30 days, so we deleted it."
+    },
+    "usage_off_notice": "Usage sharing is off. We will not send more data. To delete the data we already have, click Delete my data.",
+    "marketing_off_notice": "You are unsubscribed. We will not email you again.",
+    "email_change_notice": "Changing your email unsubscribes the old address. We will send a confirmation email to the new one.",
+    "reoptin_prompt": "This email unsubscribed before. Send a new confirmation email?",
+    "reoptin_button": "Send confirmation email",
+    "reoptin_blocked": "We cannot send emails to this address. Please use another email address.",
+    "button_show_last_data": "Show last data sent",
+    "button_delete_data": "Delete my data",
+    "contact_line": "Questions about your data, or want a copy of it? Write to {privacy_email}.",
+    "delete_dialog": {
+      "title": "Delete this site's data?",
+      "body": "WPCreatix will delete the usage data and the record for this site, and this site will stop sending data. If you get our emails, {email} is also unsubscribed. We keep a coded copy of the address only so we never email it again. To delete the email address fully, write to {privacy_email}.",
+      "button_confirm": "Delete",
+      "button_cancel": "Cancel",
+      "done": "Deleted. This site no longer sends data to WPCreatix.",
+      "failed": "We could not reach WPCreatix. Sending is already stopped on this site. We will try the delete again automatically."
+    }
+  },
+  "what_we_send_panel": {
+    "title": "What is sent to WPCreatix",
+    "intro_before_save": "This is the exact data {plugin_name} would send to WPCreatix (t.wpcreatix.com). Nothing is sent until you click Save. Your server's IP address and country are also seen when it connects; the IP is not stored.",
+    "intro_after_save": "This is the exact data last sent to WPCreatix (t.wpcreatix.com) on {date}.",
+    "empty": "Nothing has been sent yet.",
+    "button_close": "Close"
+  },
+  "deactivation_feedback": {
+    "_notes": [
+      "Nothing is sent on Skip. The reply box is unticked and the email field stays hidden until it is ticked; prefill the current user's email only after the tick.",
+      "Skip and Submit buttons have the same size; deactivation is never blocked (2 s non-blocking call)."
+    ],
+    "title": "Quick question before you go",
+    "intro": "If you have a moment, please tell us why you are deactivating {plugin_name}. This is optional.",
+    "reasons": [
+      { "code": "not_working", "label": "It does not work or it broke my site", "text_placeholder": "What went wrong? (optional)" },
+      { "code": "found_better", "label": "I found a better plugin", "text_placeholder": "Which plugin? (optional)" },
+      { "code": "temporary", "label": "I am only deactivating it for a short time", "text_placeholder": null },
+      { "code": "missing_feature", "label": "It is missing a feature I need", "text_placeholder": "Which feature? (optional)" },
+      { "code": "too_complex", "label": "It is too hard to use", "text_placeholder": "What was hard? (optional)" },
+      { "code": "no_longer_needed", "label": "I no longer need it", "text_placeholder": null },
+      { "code": "other", "label": "Other", "text_placeholder": "Tell us more (optional)" }
+    ],
+    "text_hint": "Please do not paste personal data, such as names, emails, passwords or license keys.",
+    "text_max_chars": 500,
+    "reply_checkbox": "You may email me about this",
+    "reply_email_label": "Email",
+    "reply_email_note": "We use this email only to reply, and we delete it after 90 days.",
+    "disclosure": "Submit sends your answer, the {plugin_name} version, how long it was installed (rounded), your WordPress version and site language to WPCreatix. We also see your country from your server's IP address; we do not store the IP. If you share usage data, the answer is linked to this site.",
+    "button_submit": "Submit and deactivate",
+    "button_skip": "Skip and deactivate"
+  },
+  "doi_email": {
+    "_notes": [
+      "Plain text. No promotion, no tracking pixel, no images, no link tracking: it is a confirmation, not a news email.",
+      "FluentCRM 3.2.6 (checked): put #activate_link# where {confirm_link} is (SettingsController.php:151 help text; DoubleOptinRenderer.php:36 replaces it). {postal_address} can be {{crm.business_address}} (ShortcodeParser.php:554) once the FluentCRM business address is set.",
+      "From confirm@wpcreatix.com, Reply-To {privacy_email} (D10). On Zoho cap overflow it goes out from the bulk sender (05); the text is the same.",
+      "CASL: a message that asks to confirm consent is itself a commercial message (CASL s.1(3)), so it carries the sender name, mailing address, a contact and a way to say no (reply). The person already gave express consent on the card.",
+      "Gmail/Yahoo sender rules: wpcreatix.com needs SPF, DKIM and DMARC aligned for the confirm@ From (all senders must authenticate). No List-Unsubscribe is needed on a one-to-one confirmation (verify against the live Google bulk-sender FAQ before launch).",
+      "The 30-day line matches D28."
+    ],
+    "from_name": "WPCreatix",
+    "from_email": "confirm@wpcreatix.com",
+    "reply_to": "{privacy_email}",
+    "subject": "Please confirm your email for WPCreatix news",
+    "body": "Hello,\n\nYou (or someone using this email address) asked to get news from WPCreatix in one of our WordPress plugins.\n\nTo confirm, open this link:\n{confirm_link}\n\nWhat you will get: news, tips and offers about WPCreatix plugins. You can unsubscribe at any time with the link in every email.\n\nDid not ask for this? Just ignore this email, or reply to tell us. We will not email you again, and we will delete your address after 30 days.\n\n--\nWPCreatix (Wuzzify LLC)\n{postal_address}\nCairo, Egypt\nhttps://wpcreatix.com\nPrivacy policy: {privacy_url}\nQuestions: {privacy_email}\n",
+    "confirmed_page_title": "Email confirmed",
+    "confirmed_page_message": "Thanks, your email is confirmed. You can unsubscribe at any time with the link in any of our emails."
+  },
+  "news_email_footer": {
+    "_notes": [
+      "FluentCRM campaign footer for news emails (not asked by D-items, needed by CAN-SPAM 15 U.S.C. 7704(a)(5) and CASL s.6(2)). {{crm.unsubscribe_url}} plus the RFC 8058 one-click header FluentCRM adds (05).",
+      "Open and click tracking off in v1 (privacy policy section 4 says so)."
+    ],
+    "text": "You get this email because you asked for WPCreatix news in one of our WordPress plugins.\nUnsubscribe: {unsubscribe_link}\nWPCreatix (Wuzzify LLC), {postal_address}, Cairo, Egypt. Privacy policy: {privacy_url}"
+  }
+}

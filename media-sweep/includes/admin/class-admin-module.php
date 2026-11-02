@@ -132,6 +132,19 @@ class Admin_Module {
 		?>
 		<div id="mswp-admin"></div>
 		<?php
+		$this->render_bridge_holder();
+	}
+
+	/**
+	 * Print the shared Data sharing panel and newsletter card, hidden until the app places them.
+	 *
+	 * @return void
+	 */
+	private function render_bridge_holder() {
+		echo '<div id="mswp-bridge-holder" hidden>';
+		do_action( 'wpcreatix_bridge_client_settings', 'media-sweep' );
+		do_action( 'wpcreatix_bridge_client_newsletter', 'media-sweep' );
+		echo '</div>';
 	}
 
 	/**
@@ -316,7 +329,7 @@ class Admin_Module {
 	 */
 	private function get_promo_should_prompt() {
 		// Completed at least one scan (a finished scan has a `finished_at`).
-		if ( Scan_Model::query()->where_not_null( 'finished_at' )->count() > 0 ) {
+		if ( $this->has_completed_scan() ) {
 			return true;
 		}
 
@@ -328,6 +341,21 @@ class Admin_Module {
 		}
 
 		return ( ( time() - intval( $first_seen ) ) / DAY_IN_SECONDS ) >= 7;
+	}
+
+	/**
+	 * Whether at least one scan has finished (memoized for the request).
+	 *
+	 * @return bool
+	 */
+	private function has_completed_scan() {
+		static $completed = null;
+
+		if ( null === $completed ) {
+			$completed = Scan_Model::query()->where_not_null( 'finished_at' )->count() > 0;
+		}
+
+		return $completed;
 	}
 
 	/**

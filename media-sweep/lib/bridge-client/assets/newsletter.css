@@ -1,0 +1,252 @@
+/* WPCreatix Bridge client: newsletter card (design 6-V3, slim mist strip). Tokens come from .wcxbc-ui in optin.css. */
+
+.wcxbn-box {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 20px;
+	margin: 16px 0;
+	padding: 16px 18px;
+	background: var(--wcxbc-mist);
+	border-radius: 12px;
+	transition: opacity 0.3s ease;
+}
+
+.wcxbn-box.is-leaving {
+	opacity: 0;
+}
+
+.wcxbn-pill {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	height: 30px;
+	padding: 0 11px;
+	border: 2px solid var(--wcxbc-ink);
+	border-radius: 9px;
+	transform: rotate(2deg);
+	font: 500 12px/1 var(--wcxbc-font);
+}
+
+.wcxbn-tx {
+	flex: 1 1 220px;
+	min-width: 0;
+}
+
+.wcxbn-box .wcxbn-title {
+	margin: 0;
+	padding: 0;
+	color: var(--wcxbc-ink);
+	font: 600 15.5px/1.3 var(--wcxbc-font);
+	letter-spacing: -0.3px;
+}
+
+.wcxbn-box .wcxbn-desc {
+	margin: 4px 0 0;
+	padding: 0;
+	color: var(--wcxbc-body);
+	font: 400 13.5px/1.45 var(--wcxbc-font);
+}
+
+/* The form stops at 460px so the description keeps one line on wide screens. */
+.wcxbn-form {
+	flex: 0 1 460px;
+	min-width: 0;
+	margin: 0;
+}
+
+.wcxbn-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.wcxbn-sr {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.wcxbn-box .wcxbn-row .wcxbn-in {
+	flex: 1;
+	min-width: 0;
+	height: 44px;
+	min-height: 44px;
+	margin: 0;
+	padding: 0 14px;
+	background: #fff;
+	color: var(--wcxbc-ink);
+	border: 1px solid #bdbdbd;
+	border-radius: 11px;
+	box-shadow: none;
+	font: 500 15px/1 var(--wcxbc-font);
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wcxbn-box .wcxbn-row .wcxbn-in::placeholder {
+	color: #767676;
+}
+
+.wcxbn-box .wcxbn-row .wcxbn-in:focus,
+.wcxbn-box .wcxbn-row .wcxbn-in:focus-visible {
+	border-color: var(--wcxbc-ink);
+	outline: none;
+	box-shadow: 0 0 0 3px var(--wcxbc-sky);
+}
+
+.wcxbn-box .wcxbn-row .wcxbn-in[aria-invalid="true"] {
+	border-color: var(--wcxbc-err);
+}
+
+.wcxbn-sb {
+	display: inline-flex;
+	flex: none;
+	align-items: stretch;
+	gap: 2px;
+	min-height: 44px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 11px;
+	background: none;
+	color: #fff;
+	cursor: pointer;
+}
+
+.wcxbn-sb-t {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 46px;
+	background: var(--wcxbc-ink);
+	border-radius: 11px;
+	transition: transform 0.2s ease;
+}
+
+.wcxbn-sb-l {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 22px;
+	background: var(--wcxbc-ink);
+	border-radius: 11px;
+	font: 600 14.5px/1 var(--wcxbc-font);
+	letter-spacing: -0.01em;
+	white-space: nowrap;
+}
+
+.wcxbn-sb:hover .wcxbn-sb-t {
+	transform: translateX(2px);
+}
+
+.wcxbn-sb[aria-busy="true"] {
+	opacity: 0.7;
+	cursor: progress;
+}
+
+.wcxbn-box .wcxbn-err,
+.wcxbn-box .wcxbn-ok {
+	display: none;
+	margin: 0;
+	padding: 0;
+}
+
+.wcxbn-box .wcxbn-err {
+	margin-top: 7px;
+	color: var(--wcxbc-err);
+	font: 500 13px/1.35 var(--wcxbc-font);
+}
+
+.wcxbn-box .wcxbn-ok {
+	align-items: center;
+	gap: 10px;
+	min-height: 44px;
+	font: 500 15px/1.35 var(--wcxbc-font);
+}
+
+.wcxbn-tk {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	background: #8aff88;
+	border-radius: 9px;
+	color: var(--wcxbc-ink);
+}
+
+.wcxbn-box[data-state="error"] .wcxbn-err {
+	display: block;
+}
+
+.wcxbn-box[data-state="success"] .wcxbn-row,
+.wcxbn-box[data-state="success"] .wcxbn-foot {
+	display: none;
+}
+
+.wcxbn-box[data-state="success"] .wcxbn-ok {
+	display: flex;
+}
+
+.wcxbn-foot {
+	display: flex;
+	flex-basis: 100%;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin: -8px -6px -12px 0;
+}
+
+.wcxbn-foot form {
+	margin: 0;
+}
+
+.wcxbn-box .wcxbn-fine {
+	margin: 0;
+	padding: 0;
+	color: var(--wcxbc-muted);
+	font: 400 12.5px/1.4 var(--wcxbc-font);
+}
+
+.wcxbn-fine a {
+	color: var(--wcxbc-ink);
+	text-underline-offset: 2px;
+}
+
+.wcxbn-hide {
+	min-height: 44px;
+	padding: 0 6px;
+	border: 0;
+	background: none;
+	color: var(--wcxbc-body);
+	font: 500 12.5px/1 var(--wcxbc-font);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+
+@media (max-width: 600px) {
+	.wcxbn-form {
+		flex-basis: 100%;
+	}
+
+	.wcxbn-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.wcxbn-box .wcxbn-row .wcxbn-in {
+		flex: none;
+	}
+
+	.wcxbn-sb {
+		width: 100%;
+	}
+
+	.wcxbn-sb-l {
+		flex: 1;
+	}
+}

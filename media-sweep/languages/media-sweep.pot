@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Media Sweep 1.2.0\n"
+"Project-Id-Version: Media Sweep 1.3.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/media-sweep\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-08T16:09:25+00:00\n"
+"POT-Creation-Date: 2026-11-02T08:01:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: media-sweep\n"
@@ -22,6 +22,7 @@ msgstr ""
 #: includes/admin/class-review-notice.php:107
 #: build/index.js:1
 #: build/index.js:12
+#: includes/admin/class-admin-module.php:445
 msgid "Media Sweep"
 msgstr ""
 
@@ -586,130 +587,162 @@ msgid "Wait a few seconds and call this ability again with exactly the same inpu
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:444
+#: includes/abilities/class-sweep-abilities.php:421
 msgid "This confirmation token has already been used. Nothing was deleted."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:447
+#: includes/abilities/class-sweep-abilities.php:424
 msgid "Each plan authorises exactly one sweep, so a retry - including resuming a partly processed batch - needs a fresh token. Run media-sweep/preview-sweep again and read the new numbers before sweeping."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:618
+#: includes/abilities/class-sweep-abilities.php:595
 msgid "The batch is not finished, and the confirmation token was single use. Re-previewing the SAME list mints the same, already-spent token, so the new preview must cover exactly the file_scan IDs that are still unswept - the list below."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:626
+#: includes/abilities/class-sweep-abilities.php:603
 msgid "Then sweep the rest with the token that preview returns. start_index is 0 because this list already starts at the first unswept file."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:640
+#: includes/abilities/class-sweep-abilities.php:617
 msgid "The sweep finished. Read the scan report to see what each verdict counts now."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:665
+#: includes/abilities/class-sweep-abilities.php:642
 msgid "The batch is not finished. Call this ability again with the file_scan_ids below, which are the ones still unrestored. start_index is 0 because this list already starts at the first of them."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:684
+#: includes/abilities/class-sweep-abilities.php:661
 msgid "Restored files are back in the Media Library under NEW attachment IDs. List the scan files to see the current records."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:756
+#: includes/abilities/class-sweep-abilities.php:733
 msgid "Exactly the file_scan IDs this plan covers. Pass this list verbatim to media-sweep/delete-scanned-files."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:760
+#: includes/abilities/class-sweep-abilities.php:737
 msgid "Number of files in the plan. This is the value confirm_file_count must equal."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:764
+#: includes/abilities/class-sweep-abilities.php:741
 msgid "How many files match this scan_id/status/ids filter in total, ignoring limit and offset. Compare it with total to see whether more batches remain."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:768
+#: includes/abilities/class-sweep-abilities.php:745
 msgid "How many matching files were skipped before this plan was built."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:772
+#: includes/abilities/class-sweep-abilities.php:749
 msgid "The offset to pass to the next media-sweep/preview-sweep call, or null when this batch is the last one."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:776
+#: includes/abilities/class-sweep-abilities.php:753
 msgid "Total size on disk of the files in the plan."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:781
+#: includes/abilities/class-sweep-abilities.php:758
 msgid "File count keyed by file type."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:786
+#: includes/abilities/class-sweep-abilities.php:763
 msgid "Up to 25 of the file paths in the plan, so a human can sanity-check what is about to go."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:790
+#: includes/abilities/class-sweep-abilities.php:767
 msgid "How many distinct Media Library attachments the sweep would delete."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:794
+#: includes/abilities/class-sweep-abilities.php:771
 msgid "Generated thumbnails that would be destroyed permanently. Only the original files reach the trash; these do not, and they cannot be restored."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:798
+#: includes/abilities/class-sweep-abilities.php:775
 msgid "Single-use token bound to this exact set of files, this scan and this user."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:802
+#: includes/abilities/class-sweep-abilities.php:779
 msgid "How long the token stays valid."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:836
+#: includes/abilities/class-sweep-abilities.php:813
 msgid "Files examined in this call."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:840
+#: includes/abilities/class-sweep-abilities.php:817
 msgid "Files the action succeeded on."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:844
+#: includes/abilities/class-sweep-abilities.php:821
 msgid "Files that failed."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:848
+#: includes/abilities/class-sweep-abilities.php:825
 msgid "Files left alone on purpose. A skip is not a failure: a record that is already gone was already dealt with."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:852
+#: includes/abilities/class-sweep-abilities.php:829
 msgid "Of the skipped files, how many were protected because the scan reports them as in use. There is no override."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:856
+#: includes/abilities/class-sweep-abilities.php:833
 msgid "Index into file_scan_ids to pass as start_index on the next call."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:860
+#: includes/abilities/class-sweep-abilities.php:837
 msgid "Whether the whole list has been processed."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:864
+#: includes/abilities/class-sweep-abilities.php:841
 msgid "The server ran short of memory or time and stopped early. Wait, then resume from resume_index."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:869
+#: includes/abilities/class-sweep-abilities.php:846
 msgid "One message per failed file."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:902
+#: includes/abilities/class-sweep-abilities.php:879
 msgid "Ability to call next."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:906
+#: includes/abilities/class-sweep-abilities.php:883
 msgid "Why it is the sensible next step."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:911
+#: includes/abilities/class-sweep-abilities.php:888
 msgid "Input values already known for that call."
 msgstr ""
 
 #: includes/abilities/class-sweep-abilities.php:917
+#: includes/abilities/class-sweep-abilities.php:894
 msgid "Suggested follow-up abilities."
 msgstr ""
 
@@ -731,34 +764,42 @@ msgstr ""
 #: includes/admin/class-admin-module.php:118
 #: includes/admin/class-admin-module.php:438
 #: build/index.js:34
+#: includes/admin/class-admin-module.php:466
 msgid "Settings"
 msgstr ""
 
 #: includes/admin/class-admin-module.php:248
+#: includes/admin/class-admin-module.php:261
 msgid "WPCreatix AI Sales Agent"
 msgstr ""
 
 #: includes/admin/class-admin-module.php:249
+#: includes/admin/class-admin-module.php:262
 msgid "An AI sales agent that answers product questions and walks shoppers to checkout."
 msgstr ""
 
 #: includes/admin/class-admin-module.php:254
+#: includes/admin/class-admin-module.php:267
 msgid "VidShop"
 msgstr ""
 
 #: includes/admin/class-admin-module.php:255
+#: includes/admin/class-admin-module.php:268
 msgid "Turn shoppers into buyers with shoppable video feeds."
 msgstr ""
 
 #: includes/admin/class-admin-module.php:416
+#: includes/admin/class-admin-module.php:444
 msgid "Thanks for using"
 msgstr ""
 
 #: includes/admin/class-admin-module.php:418
+#: includes/admin/class-admin-module.php:446
 msgid "crafted with ❤️ by"
 msgstr ""
 
 #: includes/admin/class-admin-module.php:433
+#: includes/admin/class-admin-module.php:461
 msgid "Dashboard"
 msgstr ""
 
@@ -1220,57 +1261,67 @@ msgstr ""
 
 #. translators: %s is the action type
 #: includes/services/class-action-service.php:195
+#: includes/services/class-action-service.php:190
 #, php-format
 msgid "Unknown action type: %s"
 msgstr ""
 
 #. translators: %1$s is the file path, %2$s is the error message
 #: includes/services/class-action-service.php:203
+#: includes/services/class-action-service.php:198
 #, php-format
 msgid "Error processing file %1$s: %2$s"
 msgstr ""
 
 #. translators: %s is the file name
 #: includes/services/class-action-service.php:272
+#: includes/services/class-action-service.php:267
 #, php-format
 msgid "Skipped \"%s\": the file has changed since this scan ran, so its result may be out of date. Run a new scan before removing it."
 msgstr ""
 
 #. translators: %1$s is the file name, %2$s is the verdict the scan recorded
 #: includes/services/class-action-service.php:333
+#: includes/services/class-action-service.php:328
 #, php-format
 msgid "Skipped \"%1$s\": the scan recorded this file with status \"%2$s\". Only files the scan found on disk but NOT in the Media Library can be restored by this ability."
 msgstr ""
 
 #. translators: %s is the file name
 #: includes/services/class-action-service.php:345
+#: includes/services/class-action-service.php:340
 #, php-format
 msgid "Skipped \"%s\": the file is still active on disk and in the plugin's file table, so there is nothing to put back. A file deleted by a sweep cannot be restored through this ability at all, because deleting it removes its file scan records - use the Media Sweep trash screen in wp-admin instead."
 msgstr ""
 
 #. translators: %s is the file status
 #: includes/services/class-action-service.php:355
+#: includes/services/class-action-service.php:350
 msgid "Cannot restore deleted file"
 msgstr ""
 
 #. translators: %s is the file path
 #: includes/services/class-action-service.php:388
+#: includes/services/class-action-service.php:383
 #, php-format
 msgid "Cannot restore file - physical file missing: %s"
 msgstr ""
 
 #: includes/services/class-action-service.php:419
+#: includes/services/class-action-service.php:414
 msgid "File restored to media library"
 msgstr ""
 
 #. translators: %s is the file type
 #: includes/services/class-action-service.php:468
+#: includes/services/class-action-service.php:463
 #, php-format
 msgid "File type not allowed by WordPress: %s"
 msgstr ""
 
 #. translators: %s is the file path
 #: includes/services/class-action-service.php:479
+#: includes/services/class-action-service.php:474
 #, php-format
 msgid "File does not exist on filesystem: %s"
 msgstr ""
@@ -1458,29 +1509,34 @@ msgstr ""
 
 #. translators: %s is the memory usage percentage
 #: includes/services/class-system-monitor-service.php:115
+#: includes/services/class-system-monitor-service.php:127
 #, php-format
 msgid "Memory usage reached %s%%"
 msgstr ""
 
 #. translators: %s is the execution time percentage
 #: includes/services/class-system-monitor-service.php:126
+#: includes/services/class-system-monitor-service.php:138
 #, php-format
 msgid "Execution time reached %s%%"
 msgstr ""
 
 #. translators: %1$s is the memory usage percentage, %2$s is current memory usage in MB, %3$s is memory limit in MB
 #: includes/services/class-system-monitor-service.php:188
+#: includes/services/class-system-monitor-service.php:205
 #, php-format
 msgid "Memory usage reached %1$s%% of limit (%2$s MB / %3$s MB)"
 msgstr ""
 
 #. translators: %1$s is the execution time percentage, %2$s is elapsed time in seconds, %3$s is time limit in seconds
 #: includes/services/class-system-monitor-service.php:198
+#: includes/services/class-system-monitor-service.php:215
 #, php-format
 msgid "Execution time reached %1$s%% of limit (%2$s seconds / %3$s seconds)"
 msgstr ""
 
 #: includes/services/class-system-monitor-service.php:219
+#: includes/services/class-system-monitor-service.php:236
 msgid "Resources within normal limits"
 msgstr ""
 
@@ -3514,4 +3570,13 @@ msgstr ""
 
 #: build/index.js:34
 msgid "Save Settings"
+msgstr ""
+
+#: build/index.js:12
+msgid "The server is too busy to continue right now. Files already processed stay processed; please try again in a few minutes."
+msgstr ""
+
+#: build/index.js:25
+#: build/index.js:26
+msgid "The file could not be processed right now. Please try again."
 msgstr ""

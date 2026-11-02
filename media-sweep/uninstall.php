@@ -123,3 +123,8 @@ if ( is_multisite() ) {
 } else {
 	media_sweep_uninstall_cleanup();
 }
+
+// Shared WPCreatix opt-in record: removed only when no other WPCreatix plugin is left.
+if ( is_readable( __DIR__ . '/lib/bridge-client/uninstall.php' ) ) {
+	require __DIR__ . '/lib/bridge-client/uninstall.php';
+}

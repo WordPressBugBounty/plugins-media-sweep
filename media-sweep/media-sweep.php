@@ -2,7 +2,7 @@
 /*
 Plugin Name: Media Sweep
 Description: Clean up your WordPress Media Library by finding and removing unused files. Safely scan, preview, and sweep away orphaned media to keep your site fast and organized.
-Version: 1.2.1
+Version: 1.3.0
 Author: WPCreatix
 Author URI: https://wpcreatix.com/
 Requires at least: 5.8
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'MEDIA_SWEEP_VERSION', '1.2.1' );
+define( 'MEDIA_SWEEP_VERSION', '1.3.0' );
 define( 'MEDIA_SWEEP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MEDIA_SWEEP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MEDIA_SWEEP_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -26,6 +26,19 @@ define( 'MEDIA_SWEEP_PLUGIN_FILE', __FILE__ );
 
 // Load the autoloader.
 require_once MEDIA_SWEEP_PLUGIN_DIR . 'includes/autoload.php';
+
+// Shared WPCreatix opt-in client; nothing is sent until the user clicks Allow or Subscribe.
+require MEDIA_SWEEP_PLUGIN_DIR . 'lib/bridge-client/load.php';
+
+wpcreatix_bridge_client_product(
+	array(
+		'slug'    => 'media-sweep',
+		'file'    => __FILE__,
+		'name'    => 'Media Sweep',
+		'version' => MEDIA_SWEEP_VERSION,
+		'screens' => array( 'toplevel_page_mswp' ),
+	)
+);
 
 /**
  * Load the main plugin class.

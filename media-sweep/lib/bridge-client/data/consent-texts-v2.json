@@ -1,0 +1,341 @@
+{
+  "schema": 1,
+  "locale": "en_US",
+  "privacy_policy_version": "2026-12",
+  "changes": [
+    "2026-11-01 v1.2 owner decisions. Nothing is released, so texts are REPLACED under the same version labels: marketing-2026-12-en has a NEW text and hash; usage-2026-12-en is unchanged (same hash). wcxb_consent_texts is insert-only, so dev databases must be reset (wp wcxb reset --yes).",
+    "Single opt-in everywhere (all countries): doi_email REMOVED (no confirmation email, no 'already subscribed, click to add' email, no welcome email). No success message says 'check your inbox' any more.",
+    "marketing-2026-12-en is now 3 lines: (1) one WPCreatix newsletter with news, tips, new products and offers; (2) 'Matched to the plugins you use.' (covers the internal product lists); (3) 'Unsubscribe anytime.'. Lines 1-2 are the description under the heading of every form; line 3 is the small print.",
+    "Small print under every email input = ONE line 'Unsubscribe anytime. Privacy policy' (new block small_print). sender_line REMOVED: the postal address is only in the privacy policy and in every email footer (owner decision 7).",
+    "Every email-frequency wording removed ('A few emails a month', 'A few a month', the slide-in list item 'Product updates, kept short').",
+    "web_forms: popup -> slide_in (design 3-V2); new inline block (design 1-V1, no badge); footer (design 2-V1, no badge). Footer heading is now 'Hear about new plugins first', so it does not repeat line 1. turnstile_note removed (one line of small print only).",
+    "Slide-in memory: localStorage key wpcreatix_newsletter only, no cookie fallback: hidden 30 days after one close, 90 days after two or more closes, never after subscribe; a 'shown' mark keeps it to one show per visit (30 minutes). '2nd page in visit' is read from document.referrer, not stored.",
+    "card (design 4-V2, sky-blue band): stub_label added; update_badge and update_line added (optional, existing installs only). optin_notice (design 5-V2): lead added; shown once, 7 or more days after Skip.",
+    "newsletter_box (design 6-V3): pill_label and a new title; the description is marketing lines 1-2; body, checkbox_label, checkbox_required and already_subscribed REMOVED; success = 'Thanks for subscribing!' (same reply for every email).",
+    "settings: only the usage toggle, 'See exactly what is sent' and Delete my data. contact_line REMOVED. The delete dialog deletes this site's data and its link to a subscriber, never the newsletter subscription.",
+    "NEW crm_pages: unsubscribe page (design 7-V1) mapped to fluent_crm/unsubscribe_texts, fluent_crm/unsubscribe_reasons and fluent_crm/unsub_response_message; confirmation page (design 8-V1) kept generic in case DOI is ever turned on; page chrome (logo, copyright, Privacy).",
+    "news_email_footer -> news_email (design 9-V2 quiet letter): senders, footer lines, plain-text footer, and signup_place (moved here from doi_email; it now reads after 'at' and has a non-empty fallback). No 'Manage preferences' link.",
+    "saas_signup: checkbox label = marketing lines 1-2, small print = line 3 + Privacy policy; success_note and the DOI note REMOVED.",
+    "Earlier history (2026-11-01 short rewrite and v1 -> v2) is in git, commit 5cca22a."
+  ],
+  "changes_from_v1": [
+    "Usage text adds: the list of installed plugins and themes (name, slug, version, author, active or not), whether the site is live, staging or local, linking a staging/local copy to the live site, 'never sold'.",
+    "v1 texts (usage-2026-11-en, marketing-2026-11-en) never reached a real site. They may be retired before launch. If any v1 row ever exists, keep it and never edit it.",
+    "privacy_policy_version 2026-11 -> 2026-12."
+  ],
+  "_notes": [
+    "Source of truth for the v2 consent and privacy UI strings. consents[].text values are versioned legal texts: after launch never edit them; a change = a new version row in wcxb_consent_texts.",
+    "text_sha256 = lowercase hex sha256 of the exact UTF-8 bytes of text (lines joined by a single \\n, no trailing newline, no HTML). Plain ASCII on purpose so the hash is stable.",
+    "The consent texts contain NO placeholders, so one text and one hash fit every plugin, website and app.",
+    "Placeholders used outside the consent texts: {plugin_name}, {plugin_version}, {email}, {date}, {year}, {privacy_url}, {privacy_email}, {contact_email}, {postal_address}, {signup_place}, {app_name}, {site_name}, {unsubscribe_link}.",
+    "Usage rendering: line 1 of consents[usage].text is the visible sentence (opt-in screen and notice); the '- ' lines are the bullets inside 'What we collect', in this order. Render them from the text itself, so what is shown is exactly what is hashed.",
+    "Marketing rendering (every newsletter form, plugin card and SaaS sign-up): lines 1 and 2 of consents[marketing].text, joined by one space, are the description (one paragraph under the heading, or the SaaS checkbox label). Line 3 is the small print, followed by one space and the small_print link. Never shorten, reorder or translate them.",
+    "Consent proof to store for marketing (single opt-in, so all of it at the Subscribe click): email, text_version, text_sha256, privacy_policy_version, consent_method ('form_submit' on forms and the plugin card, 'checkbox' in SaaS apps), source (plugin:{slug}/channel:plugin-box, site:{host}/form:inline|footer|slide-in plus the page path, app:{slug}), submitted_at (UTC), IP address and user agent of the request (for the plugin card: the admin's browser IP and user agent, passed by the client library, not the web server's). This is the GDPR Art 7(1) proof and the 'date, time, purpose and manner' record of CRTC Bulletin 2012-548.",
+    "Usage proof: site id, text_version, text_sha256, granted_at (UTC), plugin slug that showed the screen or notice, client version, privacy_policy_version.",
+    "Public paths give the SAME reply for a new, subscribed, unsubscribed or suppressed email and for honeypot hits (no enumeration). A public form never changes the name or other profile fields of an existing person; it only adds the source tag. With single opt-in a public form can NOT re-subscribe an unsubscribed or suppressed email (complained, bounced, erased): anyone could type it, and CAN-SPAM 15 U.S.C. 7704(a)(4) bars mail after an opt-out without the person's own new consent. Same reply anyway. Coming back = write to the privacy contact, or tick the box in a SaaS app with a verified account email.",
+    "The usage label is NOT 'anonymous': the payload has the site address and a site id, so it is personal data (GDPR Art 4(1), Recital 26). 'Non-sensitive' is fine (same word WooCommerce uses).",
+    "If the client starts sending a new field group, ship a new usage text version in the same release, and update readme-external-services-v2.md and the privacy policy.",
+    "Product lists (VidShop users, Media Sweep users, AI Sales Agent users, ViewMeter users) are covered by marketing line 2. Allowed inputs only: the source of the signup (plugin card of that plugin) and plugins seen on a site that shares usage data AND is linked to the person. Never link a person to a site by guessing (same host, admin email match).",
+    "No dark patterns: Allow and No thanks / Skip the same size and style; slide-in close always visible; no countdown, no guilt text; a refusal is never asked again by the same surface.",
+    "Translations: consent texts in English only in v2 (do not wrap them in __()). A translated text needs its own version and hash, for example marketing-2026-12-fr. Other UI strings may be translated.",
+    "tests/contract/fixtures/*.json and every test that pins hashes: use the two text_sha256 values below (usage unchanged, marketing new)."
+  ],
+  "consents": [
+    {
+      "purpose": "usage",
+      "version": "usage-2026-12-en",
+      "locale": "en_US",
+      "replaces": "usage-2026-11-en",
+      "short_label": "Share usage data",
+      "text": "Allow WPCreatix to collect non-sensitive usage data, including the list of plugins and themes, to improve our plugins. You can turn this off anytime.\n- Site: address, a random site ID, language, WordPress, PHP and MySQL versions, server type, multisite or not.\n- Live, staging or local. A staging or local copy may be linked to your live site.\n- Plugins and themes: name, slug, version, author, active or not.\n- Our plugins: which ones, versions and install dates.\n- Rounded counts, like 100-999 posts, and how often you use some of our features.\n- WooCommerce: store currency and country.\n- When: about once a week, and when our plugins are activated, deactivated, updated or deleted.\n- Your country, read from your server's IP address. We do not store the IP.\n- Never: your content, customer or order data, user names, emails or passwords.\n- We never sell this data.\n- Sent to WPCreatix (Wuzzify LLC, Cairo, Egypt). Covers all WPCreatix plugins on this site.",
+      "text_sha256": "c98627aa7e86ab260c26bbdd9febd1aa4373049897822497a048fb877219f7e9",
+      "details_link_text": "See exactly what is sent"
+    },
+    {
+      "purpose": "marketing",
+      "version": "marketing-2026-12-en",
+      "locale": "en_US",
+      "replaces": "marketing-2026-11-en",
+      "short_label": "WPCreatix newsletter",
+      "text": "WPCreatix news, tips and offers by email.\nMatched to the plugins you use.\nUnsubscribe anytime.",
+      "text_sha256": "8230cc1ea0f4f04f7d7de1821904cbdd41cc056ea4bfb08f8b4de2f0d2ae00fb",
+      "details_link_text": "Privacy policy"
+    }
+  ],
+  "small_print": {
+    "_notes": [
+      "The ONE line under every email input (plugin card, inline, footer, slide-in, SaaS checkbox): text + ' ' + a link with link_text to {privacy_url}. text MUST equal line 3 of consents[marketing].text (a unit test checks it). Nothing else in the small print: no address, no frequency, no Turnstile line.",
+      "Always visible, never in a tooltip; 13-14px, same contrast rules as body text."
+    ],
+    "text": "Unsubscribe anytime.",
+    "link_text": "Privacy policy",
+    "link_url": "{privacy_url}"
+  },
+  "card": {
+    "_notes": [
+      "The FULL-SCREEN OPT-IN (Freemius style, design 4-V2 with a SKY-BLUE #88c5ff top band instead of green). Usage only, no email. Shown INSTEAD of the plugin UI the FIRST time an admin opens one of our plugin's own admin pages, on new installs AND on existing installs after the update that adds it. NO redirect on activation. Shown once per site (the choice is shared by all WPCreatix plugins), never on the dashboard, Plugins screen or other plugins' pages (Guideline 11).",
+      "Layout: band with stub_label + WPCreatix logo; plugin icon + {plugin_name}; title; the sentence (line 1 of consents[usage].text); [Allow & Continue] [Skip] the same size; under them the collapsed 'What we collect' (bullets from the text, then preview_link) and privacy_link.",
+      "Allow & Continue = granted row for usage-2026-12-en, then open the plugin page. Skip = nothing sent (local flag only), open the plugin page with every feature working (Guideline 7). Skip is a real button, not a faint link.",
+      "update_badge + update_line: optional, only for existing installs seeing it after the update. Not hashed.",
+      "After Skip, the only other ask is optin_notice, once."
+    ],
+    "stub_label": "Optional · usage sharing",
+    "title": "Help us improve {plugin_name}",
+    "update_badge": "New in {plugin_version}",
+    "update_line": "Optional usage sharing. The plugin works the same if you skip.",
+    "expander_label": "What we collect",
+    "expander_label_open": "Hide details",
+    "multisite_note": "On a multisite network, this covers every site.",
+    "preview_link": "See exactly what is sent",
+    "privacy_link": "Privacy policy",
+    "button_allow": "Allow & Continue",
+    "button_no_thanks": "Skip",
+    "saved_usage": "Thanks! Usage sharing is on.",
+    "saved_nothing": "OK. Nothing will be sent.",
+    "retry_notice": "We could not reach WPCreatix. We will try again automatically."
+  },
+  "optin_notice": {
+    "_notes": [
+      "WooCommerce-style notice (design 5-V2: WP notice frame with a dark edge, plugin icon, our buttons). Shown ONCE, only to sites that clicked Skip on the opt-in screen, at the earliest 7 days later, only on our own plugin admin pages (Guideline 11), only to users with manage_options.",
+      "Line = lead + ' ' + line 1 of consents[usage].text exactly (same hash as the screen). 'What we collect' opens the same bullets in place. Buttons [Allow] [No thanks] the same size, plus the standard WP dismiss (X).",
+      "No thanks or X = never ask again on this site. Allow = granted row for usage-2026-12-en; the notice turns into done_yes for this page view."
+    ],
+    "lead": "Help improve {plugin_name}.",
+    "details_link": "What we collect",
+    "button_allow": "Allow",
+    "button_no_thanks": "No thanks",
+    "dismiss_aria": "Dismiss this notice",
+    "done_yes": "Thanks! Usage sharing is on. You can turn it off in the settings."
+  },
+  "reconsent_card": {
+    "_notes": [
+      "NOT USED AT LAUNCH: no site agreed to v1. Template for the next usage text change: show once, only to admins of sites on the old usage version, only on our own plugin screens.",
+      "Until Yes, the client sends only what the old text covered. No keeps the old sharing and never asks again. Same size buttons."
+    ],
+    "title": "We updated what usage data we collect",
+    "body": "We would now also like to collect {what_is_new}. Nothing new is sent unless you agree.",
+    "text_link": "What we collect",
+    "button_yes": "Yes, include it",
+    "button_no": "No, keep it as before",
+    "done_yes": "Thanks. Updated.",
+    "done_no": "OK. Nothing changes."
+  },
+  "settings": {
+    "_notes": [
+      "Only three things: the usage toggle, 'See exactly what is sent', Delete my data (owner decision 4). No marketing toggle, no email or subscription status, no re-opt-in, no contact line: unsubscribe is the link in every email (owner decision 3)."
+    ],
+    "section_title": "Data sharing",
+    "toggle_usage": "Share usage data with WPCreatix",
+    "shared_note": "This setting is shared by all WPCreatix plugins on this site.",
+    "usage_status_on": "On",
+    "usage_status_off": "Off",
+    "usage_off_notice": "Usage sharing is off. We will not send more data, and we delete this site's details and plugin list.",
+    "button_show_last_data": "See exactly what is sent",
+    "button_delete_data": "Delete my data",
+    "delete_dialog": {
+      "title": "Delete this site's data?",
+      "body": "We will delete this site's usage data, its plugin and theme list, and any link between this site and a newsletter subscriber. This site will stop sending data. This does not unsubscribe anyone from our newsletter: use the link in any email. To delete an email address, write to {privacy_email}.",
+      "button_confirm": "Delete",
+      "button_cancel": "Cancel",
+      "done": "Deleted. This site no longer sends data to WPCreatix.",
+      "failed": "We could not reach WPCreatix. Sending is already stopped. We will try the delete again automatically."
+    }
+  },
+  "what_we_send_panel": {
+    "_notes": [
+      "The preview before Allow MUST include the plugin and theme list exactly as it would be sent (all parts), not a sample."
+    ],
+    "title": "What is sent to WPCreatix",
+    "intro_before_save": "The exact data {plugin_name} would send to connect.wpcreatix.com. Nothing is sent until you click Allow.",
+    "intro_after_save": "The exact data last sent to connect.wpcreatix.com on {date}.",
+    "plugin_list_heading": "Installed plugins and themes",
+    "empty": "Nothing has been sent yet.",
+    "button_close": "Close"
+  },
+  "newsletter_box": {
+    "_notes": [
+      "Plugin newsletter card (design 6-V3: slim mist strip) on the plugin's settings page or at the bottom of its own pages only (Guideline 11), never on the dashboard or other plugins' pages. Users with manage_options. Independent of usage: works even if usage was refused or skipped.",
+      "Layout: pill_label, title, description = marketing lines 1-2 (one short line under the title), email field prefilled with the site admin email (editable), Subscribe, small print + dismiss. No checkbox: typing or keeping the email and clicking Subscribe is the consent. Nothing is sent before Subscribe.",
+      "Sends: email, text_version, text_sha256, consent_method=form_submit, plugin slug, the admin's IP and user agent (proof). Only if this site shares usage data, it may also send the site's random id so Bridge can link the person to this site (covered by marketing line 2). Never the site address.",
+      "Never shows a subscription status. After success: show success, then hide the card for good on this site (local option). dismiss hides it for good. The /v1/subscribe reply is the same for every email (no enumeration).",
+      "FluentCRM: source tag from-{slug} (for example from-vidshop) and the list '{Product} users' by rule."
+    ],
+    "pill_label": "News",
+    "title": "Get new features before the changelog",
+    "email_label": "Email",
+    "email_placeholder": "you@example.com",
+    "email_invalid": "Please enter a valid email address.",
+    "button_subscribe": "Subscribe",
+    "button_busy": "Sending...",
+    "success": "Thanks for subscribing!",
+    "error": "Could not subscribe right now. Please try again later.",
+    "error_rate_limited": "Too many tries. Please wait a few minutes.",
+    "dismiss": "Hide",
+    "dismiss_aria": "Hide the newsletter box"
+  },
+  "web_forms": {
+    "_notes": [
+      "Three forms on wpcreatix.com and our other sites, all from the WPCreatix Forms embed: inline (end of blog posts and docs, design 1-V1 WITHOUT the 'WPCreatix notes' badge), footer (top of the site footer, design 2-V1 WITHOUT badge), slide_in (design 3-V2). NO centre popup. All post to Bridge with the site's form key. Source tags: website-inline, website-footer, website-slidein (plus site:{host} and the page path in the proof).",
+      "Every form: heading (per form, below) + description = marketing lines 1-2 + email field + Subscribe + small print. No checkbox.",
+      "Anti-spam: Cloudflare Turnstile (loaded when the person focuses the email field, or when the slide-in opens), honeypot, minimum fill time, MX/domain check, rate limits. The same success reply for every email; a bad domain gets email_invalid.",
+      "Slide-in rules: desktop only (viewport 1024px or wider); non-modal, bottom-right, the page stays usable; shown only after (60% scroll AND 40 s visible) OR (2nd page in the visit, read from a same-host document.referrer, AND 20 s); never before 15 s; never on privacy, terms, checkout, cart, account or contact pages (also behind a language prefix such as /de/privacy-policy/); never while the cookie banner or another overlay is open or while the person types in a field; close button visible and keyboard reachable; Esc closes.",
+      "Slide-in memory, localStorage ONLY (no cookie, no fallback; if localStorage throws, do not show the slide-in): key in storage_key, value JSON {\"n\":<closes>,\"t\":<unix day of the last close>,\"s\":1 after subscribe,\"v\":<unix minute when last shown>}. Rules: s=1 -> never show again; n=1 -> hide 30 days after t; n>=2 -> hide 90 days after t; v less than 30 minutes ago -> do not show again (one show per visit). A subscribe from the inline or footer form also sets s=1. No id, no email, never sent to any server."
+    ],
+    "storage_key": "wpcreatix_newsletter",
+    "shared": {
+      "email_label": "Email",
+      "email_placeholder": "you@example.com",
+      "email_invalid": "Please enter a valid email address.",
+      "button_subscribe": "Subscribe",
+      "button_busy": "Sending...",
+      "success": "Thanks for subscribing!",
+      "error": "Something went wrong. Please try again in a minute.",
+      "error_rate_limited": "Too many tries. Please wait a few minutes.",
+      "error_bot_check": "We could not check that you are a person. Please try again."
+    },
+    "inline": {
+      "heading": "Tricks we test on real WooCommerce stores"
+    },
+    "footer": {
+      "heading": "Hear about new plugins first"
+    },
+    "slide_in": {
+      "tag": "WPCreatix notes",
+      "heading": "New plugins reach this list first",
+      "aria_label": "Newsletter",
+      "close_label": "Close",
+      "close_aria": "Close the newsletter box"
+    }
+  },
+  "saas_signup": {
+    "_notes": [
+      "Our own SaaS apps (VidShop AI, AI Sales Agent cloud). Sign-up here is bundled with creating the app account, so the newsletter needs its OWN unticked checkbox, separate from accepting the terms (GDPR Art 7(2); CRTC Bulletin 2012-548 para 16).",
+      "checkbox_label = marketing lines 1-2 joined by one space, exactly. Under it: small_print.",
+      "Server-to-server call to Bridge with the app's scoped key: email, text_version, text_sha256, consent_method=checkbox, consented_at (UTC), source (app slug), IP and user agent at the tick. Only when ticked; never back-fill existing app users. Subscribed at once (single opt-in).",
+      "Unsubscribing from news never closes the app account; closing the account unsubscribes the email."
+    ],
+    "checkbox_label": "WPCreatix news, tips and offers by email. Matched to the plugins you use."
+  },
+  "deactivation_feedback": {
+    "_notes": [
+      "Same as before. Nothing is sent on Skip. The reply box is unticked and the email field stays hidden until it is ticked; prefill the current user's email only after the tick.",
+      "Skip and Submit buttons have the same size; deactivation is never blocked (2 s non-blocking call)."
+    ],
+    "title": "Quick question before you go",
+    "intro": "If you have a moment, please tell us why you are deactivating {plugin_name}. This is optional.",
+    "reasons": [
+      {
+        "code": "not_working",
+        "label": "It does not work or it broke my site",
+        "text_placeholder": "What went wrong? (optional)"
+      },
+      {
+        "code": "found_better",
+        "label": "I found a better plugin",
+        "text_placeholder": "Which plugin? (optional)"
+      },
+      {
+        "code": "temporary",
+        "label": "I am only deactivating it for a short time",
+        "text_placeholder": null
+      },
+      {
+        "code": "missing_feature",
+        "label": "It is missing a feature I need",
+        "text_placeholder": "Which feature? (optional)"
+      },
+      {
+        "code": "too_complex",
+        "label": "It is too hard to use",
+        "text_placeholder": "What was hard? (optional)"
+      },
+      {
+        "code": "no_longer_needed",
+        "label": "I no longer need it",
+        "text_placeholder": null
+      },
+      {
+        "code": "other",
+        "label": "Other",
+        "text_placeholder": "Tell us more (optional)"
+      }
+    ],
+    "text_hint": "Please do not paste personal data, such as names, emails, passwords or license keys.",
+    "text_max_chars": 500,
+    "reply_checkbox": "You may email me about this",
+    "reply_email_label": "Email",
+    "reply_email_note": "We use this email only to reply, and we delete it after 90 days.",
+    "disclosure": "Submit sends your answer, the {plugin_name} version, how long it was installed (rounded), your WordPress version and site language to WPCreatix. We also see your country from your server's IP address; we do not store the IP. If you share usage data, the answer is linked to this site.",
+    "button_submit": "Submit and deactivate",
+    "button_skip": "Skip and deactivate"
+  },
+  "crm_pages": {
+    "_notes": [
+      "FluentCRM public pages on the Bridge host, skinned by Bridge (src/Crm/Pages/**). Chrome on every page: header pill with the logo (logo_alt), footer with copyright and a Privacy link.",
+      "unsubscribe (design 7-V1): heading, heading_description, email_label, reason_label, button_text -> filter fluent_crm/unsubscribe_texts (same keys). reasons -> filter fluent_crm/unsubscribe_reasons (key => label; 'other' makes FluentCRM show its own 'Please specify' field). done_title + ' ' + done_message -> filter fluent_crm/unsub_response_message. aside, done_tag and back_button are added by the skin. One press unsubscribes; the reason is optional.",
+      "manage_subscription is never linked (no 'Manage preferences'). If someone opens it, show the unsubscribe page.",
+      "confirmation (design 8-V1): not used while single opt-in is on. Kept generic for a future DOI (filter fluent_crm/double_optin_options, after_confirm_message)."
+    ],
+    "chrome": {
+      "logo_alt": "WPCreatix home",
+      "copyright": "© {year} WPCreatix",
+      "privacy_link_text": "Privacy"
+    },
+    "unsubscribe": {
+      "heading": "Unsubscribe from WPCreatix news?",
+      "heading_description": "",
+      "email_label": "Email",
+      "reason_label": "Why are you leaving? (optional)",
+      "button_text": "Unsubscribe",
+      "aside": "Changed your mind? Just close this page.",
+      "reasons": {
+        "too_many": "I get too many emails",
+        "not_useful": "The emails are not useful to me",
+        "never_signed_up": "I did not sign up for this",
+        "other": "Other"
+      },
+      "done_tag": "Done",
+      "done_title": "You are unsubscribed",
+      "done_message": "We will not send WPCreatix news to this address again.",
+      "back_button": "Back to wpcreatix.com",
+      "back_url": "https://wpcreatix.com"
+    },
+    "confirmation": {
+      "title": "You're subscribed",
+      "message": "Thanks! Your email is confirmed. Every email has an unsubscribe link.",
+      "back_button": "Back to wpcreatix.com",
+      "back_url": "https://wpcreatix.com"
+    }
+  },
+  "news_email": {
+    "_notes": [
+      "FluentCRM campaign template (design 9-V2, quiet letter): table layout, inline CSS, 600px, Geist then system fonts, bulletproof button, dark logo PNG on its own white background, alt text on every image, a plain-text version. Open and click tracking and the contact cookie stay OFF (the privacy policy says so).",
+      "Footer, in this order: footer_why; then 'Unsubscribe' (FluentCRM unsubscribe URL) + ' · ' + 'Privacy policy' ({privacy_url}); then footer_address. No 'Manage preferences'. FluentCRM adds RFC 8058 List-Unsubscribe + List-Unsubscribe-Post headers (one-click; Gmail and Yahoo sender rules).",
+      "CAN-SPAM 15 U.S.C. 7704(a)(3) and (a)(5)(A): working opt-out and a valid postal address in every email; opt-outs honoured at once (the law allows 10 business days). CASL s.6(2) and CRTC Regulations SOR/2012-36 s.2-3: sender name, mailing address, a web address, and an unsubscribe link.",
+      "{signup_place} reads after 'at'. Value from the person's first marketing grant: plugin_box, website_form or saas_app; fallback when unknown. {postal_address} may be FluentCRM {{crm.business_address}} (verify the smartcode on the real template).",
+      "Senders: campaigns from news@news.wpcreatix.com; Bridge system mail (alerts, health) from alerts@news.wpcreatix.com to our team only. All mail goes through FluentSMTP -> Resend. Zoho is not used."
+    ],
+    "from_name": "WPCreatix",
+    "from_email": "news@news.wpcreatix.com",
+    "reply_to": "{contact_email}",
+    "logo_alt": "WPCreatix",
+    "footer_why": "You get this because you signed up at {signup_place}.",
+    "footer_unsubscribe": "Unsubscribe",
+    "footer_privacy": "Privacy policy",
+    "footer_address": "WPCreatix · Wuzzify LLC · {postal_address}, Cairo, Egypt",
+    "footer_text_plain": "You get this because you signed up at {signup_place}.\nUnsubscribe: {unsubscribe_link}\nPrivacy policy: {privacy_url}\nWPCreatix · Wuzzify LLC · {postal_address}, Cairo, Egypt",
+    "signup_place": {
+      "plugin_box": "the {plugin_name} plugin",
+      "website_form": "{site_name}",
+      "saas_app": "{app_name}",
+      "fallback": "WPCreatix"
+    }
+  },
+  "system_email": {
+    "_notes": [
+      "Bridge alerts and health mail to our own team (never to subscribers or site owners). Same route: FluentSMTP -> Resend. The pre_wp_mail guard stays."
+    ],
+    "from_name": "WPCreatix alerts",
+    "from_email": "alerts@news.wpcreatix.com"
+  }
+}

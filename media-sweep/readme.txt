@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.2.1
+Stable tag: 1.3.0
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -206,6 +206,11 @@ Yes, on WordPress 6.9 or newer with the free MCP Adapter plugin from the WordPre
 
 == Changelog ==
 
+= 1.3.0 =
+* New: the first time you open Media Sweep, an optional screen asks whether you want to share usage data with us: your site address, your WordPress, PHP and plugin versions, and the plugins and themes you use. Nothing is sent unless you click Allow. The settings page shows exactly what is sent, lets you turn it off, and deletes your site's data on request.
+* New: an optional newsletter signup box on the plugin's own pages. It sends nothing unless you click Subscribe.
+* New: when you deactivate the plugin you can tell us why. "Skip and deactivate" sends nothing.
+
 = 1.2.1 =
 * Fixed: on sites running close to their PHP memory limit, deleting files did nothing - single delete showed no message and bulk delete stayed at 0%. Deletion no longer counts memory used by WordPress and other plugins against itself, and always makes progress.
 
@@ -324,6 +329,9 @@ Yes, on WordPress 6.9 or newer with the free MCP Adapter plugin from the WordPre
 
 == Upgrade Notice ==
 
+= 1.3.0 =
+Adds an optional usage-data screen and a newsletter box. Nothing is sent unless you agree.
+
 = 1.2.1 =
 Fixes deleting files doing nothing on sites close to their PHP memory limit. Recommended for everyone.
 
@@ -347,9 +355,24 @@ Need help with Media Sweep? We're here to assist!
 * **Feature Requests:** [Submit ideas and suggestions](https://wpcreatix.com/contact/)
 * **Bug Reports:** [Report issues for quick resolution](https://wpcreatix.com/contact/)
 
+== External services ==
+
+Media Sweep can connect to WPCreatix's own service at https://connect.wpcreatix.com (usage data and newsletter, both opt-in).
+
+Nothing is sent unless you click one of these buttons. Skip sends nothing.
+
+* **Allow** (usage data): your site address, your WordPress, PHP and plugin versions, the plugins and themes you use, and rounded usage counts. Sent once a week and when a WPCreatix plugin is activated, updated or removed. Never your content, customers, orders or passwords.
+* **Subscribe** (newsletter): the email you enter, with proof of the signup. Every email has an unsubscribe link.
+* **Submit and deactivate** (feedback): the reason you pick, your note, and your email only if you tick the box.
+
+On Media Sweep's settings page you can see what is sent, turn sharing off, or delete your site's data at any time.
+
+Terms: https://wpcreatix.com/terms-and-conditions/
+Privacy policy: https://wpcreatix.com/privacy-policy/
+
 == Privacy ==
 
-Media Sweep respects your privacy and does not collect or transmit any personal data. All file analysis and cleanup operations are performed locally on your server. No external services are contacted during plugin operation.
+Scans, cleanups and the trash all run locally on your server, and your files and media never leave it. Media Sweep contacts an outside service only in the cases listed under External services.
 
 == Credits ==
 
