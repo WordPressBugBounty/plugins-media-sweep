@@ -11,6 +11,7 @@ use WPCreatix\BridgeClient\Client;
 use WPCreatix\BridgeClient\Config;
 use WPCreatix\BridgeClient\Identity;
 use WPCreatix\BridgeClient\Lock;
+use WPCreatix\BridgeClient\Newsletter\Box;
 use WPCreatix\BridgeClient\Queue;
 use WPCreatix\BridgeClient\Snapshot\Snapshot;
 
@@ -172,6 +173,11 @@ final class Registrar {
 		$client = $this->client;
 		$store  = $client->store();
 
+		// The register carried the Allow contact: the newsletter card has nothing left to ask.
+		if ( is_array( $store->get( 'optin_contact' ) ) ) {
+			Box::remember( 'subscribed' );
+		}
+
 		$store->set(
 			array(
 				'uid'              => $pending['uid'],
@@ -180,6 +186,7 @@ final class Registrar {
 				'registered_at'    => $client->now(),
 				'pending_register' => null,
 				'gone'             => false,
+				'optin_contact'    => null,
 			)
 		);
 
@@ -226,6 +233,7 @@ final class Registrar {
 				array(
 					'pending_register'     => null,
 					'register_dropped_sig' => $this->client->signature(),
+					'optin_contact'        => null,
 				)
 			);
 		}

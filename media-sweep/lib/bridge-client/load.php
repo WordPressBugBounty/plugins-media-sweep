@@ -9,7 +9,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$GLOBALS['wpcreatix_bridge_client_copies']['1.2.0'] = __DIR__;
+$GLOBALS['wpcreatix_bridge_client_copies']['1.3.0'] = __DIR__;
 
 if ( ! function_exists( 'wpcreatix_bridge_client_product' ) ) {
 	/**

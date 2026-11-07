@@ -138,6 +138,14 @@
 	font: 400 14.5px/1.55 var(--wcxbc-font);
 }
 
+/* Allow also shares name and email: small and grey, never hidden. */
+.wcxbc-oi .wcxbc-oi-contact {
+	margin: -12px 0 20px;
+	padding: 0;
+	color: var(--wcxbc-muted);
+	font: 400 13px/1.5 var(--wcxbc-font);
+}
+
 .wcxbc-oi form {
 	margin: 0;
 }
@@ -332,6 +340,14 @@
 
 .wcxbc-ntc-line strong {
 	font-weight: 600;
+}
+
+.wcxbc-ntc-contact {
+	display: block;
+	margin-top: 2px;
+	color: var(--wcxbc-muted);
+	font-size: 12.5px;
+	line-height: 1.45;
 }
 
 .wcxbc-ntc-acts {

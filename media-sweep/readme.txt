@@ -2,7 +2,7 @@
 Contributors: wpcreatix
 Donate link: https://wpcreatix.com/
 Tags: images, files, cleanup, media, library
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -206,6 +206,9 @@ Yes, on WordPress 6.9 or newer with the free MCP Adapter plugin from the WordPre
 
 == Changelog ==
 
+= 1.3.1 =
+* Improved: the optional usage-data screen.
+
 = 1.3.0 =
 * New: the first time you open Media Sweep, an optional screen asks whether you want to share usage data with us: your site address, your WordPress, PHP and plugin versions, and the plugins and themes you use. Nothing is sent unless you click Allow. The settings page shows exactly what is sent, lets you turn it off, and deletes your site's data on request.
 * New: an optional newsletter signup box on the plugin's own pages. It sends nothing unless you click Subscribe.
@@ -329,6 +332,9 @@ Yes, on WordPress 6.9 or newer with the free MCP Adapter plugin from the WordPre
 
 == Upgrade Notice ==
 
+= 1.3.1 =
+Improves the optional usage-data screen.
+
 = 1.3.0 =
 Adds an optional usage-data screen and a newsletter box. Nothing is sent unless you agree.
 
@@ -361,7 +367,7 @@ Media Sweep can connect to WPCreatix's own service at https://connect.wpcreatix.
 
 Nothing is sent unless you click one of these buttons. Skip sends nothing.
 
-* **Allow** (usage data): your site address, your WordPress, PHP and plugin versions, the plugins and themes you use, and rounded usage counts. Sent once a week and when a WPCreatix plugin is activated, updated or removed. Never your content, customers, orders or passwords.
+* **Allow** (usage data): your site address, your WordPress, PHP and plugin versions, the plugins and themes you use, and rounded usage counts, plus your name and email for product news, tips and offers. Usage data is sent once a week and when a WPCreatix plugin is activated, updated or removed; your name and email only once. Never your content, customers, orders or passwords.
 * **Subscribe** (newsletter): the email you enter, with proof of the signup. Every email has an unsubscribe link.
 * **Submit and deactivate** (feedback): the reason you pick, your note, and your email only if you tick the box.
 

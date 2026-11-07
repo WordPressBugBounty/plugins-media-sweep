@@ -11,7 +11,7 @@ use WPCreatix\BridgeClient\Client;
 use WPCreatix\BridgeClient\Config;
 
 /**
- * Usage only; Allow & Continue and Skip are the same size; Skip sends nothing.
+ * Usage plus the admin's contact (one visible small line); Allow & Continue and Skip are the same size; Skip sends nothing.
  */
 final class OptinScreen {
 
@@ -157,6 +157,7 @@ final class OptinScreen {
 		);
 		$update  = $this->existing_install( (string) $product['slug'] ) && '' !== (string) $product['version'];
 		$bullets = Texts::usage_bullets();
+		$contact = Texts::contact_line();
 
 		ob_start();
 		?>
@@ -173,6 +174,9 @@ final class OptinScreen {
 					<div class="wcxbc-oi-who"><?php echo self::icon( $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- icon() escapes. ?><?php echo esc_html( (string) $product['name'] ); ?></div>
 					<h2 id="wcxbc-oi-title"><?php echo esc_html( Texts::get( 'card.title', $vars ) ); ?></h2>
 					<p class="wcxbc-oi-lead"><?php echo esc_html( Texts::usage_sentence() ); ?><?php echo is_multisite() ? ' ' . esc_html( Texts::get( 'card.multisite_note' ) ) : ''; ?></p>
+					<?php if ( '' !== $contact ) : ?>
+						<p class="wcxbc-oi-contact"><?php echo esc_html( $contact ); ?></p>
+					<?php endif; ?>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" data-wcxbc-form="optin">
 						<input type="hidden" name="action" value="<?php echo esc_attr( Config::AJAX ); ?>" />
 						<input type="hidden" name="via" value="<?php echo esc_attr( (string) $product['slug'] ); ?>" />

@@ -46,6 +46,7 @@ final class Store {
 			'optin_answered_at'      => 0,
 			'optin_skipped_at'       => 0,
 			'notice_done'            => false,
+			'optin_contact'          => null,
 			'usage'                  => array(
 				'granted'      => false,
 				'text_version' => '',
@@ -270,6 +271,11 @@ final class Store {
 
 		if ( ! is_array( $data['plugins'] ) ) {
 			$data['plugins'] = array();
+		}
+
+		// The Allow contact waits here only until the register that carries it succeeds.
+		if ( ! is_array( $data['optin_contact'] ) ) {
+			$data['optin_contact'] = null;
 		}
 
 		return $data;

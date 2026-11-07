@@ -82,7 +82,8 @@ final class OptinNotice {
 	 * @return string HTML.
 	 */
 	public function html( array $product ) {
-		$vars = array( 'plugin_name' => (string) $product['name'] );
+		$vars    = array( 'plugin_name' => (string) $product['name'] );
+		$contact = Texts::contact_line();
 
 		ob_start();
 		?>
@@ -93,7 +94,7 @@ final class OptinNotice {
 				<input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( Config::AJAX ) ); ?>" />
 				<div class="wcxbc-ntc-line">
 					<?php echo OptinScreen::icon( $product ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- icon() escapes. ?>
-					<p><strong><?php echo esc_html( Texts::get( 'optin_notice.lead', $vars ) ); ?></strong> <?php echo esc_html( Texts::usage_sentence() ); ?></p>
+					<p><strong><?php echo esc_html( Texts::get( 'optin_notice.lead', $vars ) ); ?></strong> <?php echo esc_html( Texts::usage_sentence() ); ?><?php echo '' === $contact ? '' : '<span class="wcxbc-ntc-contact">' . esc_html( $contact ) . '</span>'; ?></p>
 					<span class="wcxbc-ntc-acts">
 						<button type="submit" class="wcxbc-obt wcxbc-obt-pri" name="op" value="notice_allow"><?php echo esc_html( Texts::get( 'optin_notice.button_allow' ) ); ?></button>
 						<button type="submit" class="wcxbc-obt" name="op" value="notice_dismiss"><?php echo esc_html( Texts::get( 'optin_notice.button_no_thanks' ) ); ?></button>

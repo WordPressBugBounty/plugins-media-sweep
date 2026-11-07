@@ -3,6 +3,7 @@
   "locale": "en_US",
   "privacy_policy_version": "2026-12",
   "changes": [
+    "2026-11-03 owner decision (Freemius style): Allow on the opt-in screen and on the notice also shares the clicking admin's first name and email for the WPCreatix newsletter. NEW usage text usage-2026-12b-en: line 2 is the one small disclosure line shown under the sentence; the 'Never' bullet no longer says 'emails' (it says 'other users' emails'); covers adds 'contact'. usage-2026-12-en stays valid: sites that already answered keep it, and the settings toggle (which shares no email) grants it. Skip still sends nothing.",
     "2026-11-01 v1.2 owner decisions. Nothing is released, so texts are REPLACED under the same version labels: marketing-2026-12-en has a NEW text and hash; usage-2026-12-en is unchanged (same hash). wcxb_consent_texts is insert-only, so dev databases must be reset (wp wcxb reset --yes).",
     "Single opt-in everywhere (all countries): doi_email REMOVED (no confirmation email, no 'already subscribed, click to add' email, no welcome email). No success message says 'check your inbox' any more.",
     "marketing-2026-12-en is now 3 lines: (1) one WPCreatix newsletter with news, tips, new products and offers; (2) 'Matched to the plugins you use.' (covers the internal product lists); (3) 'Unsubscribe anytime.'. Lines 1-2 are the description under the heading of every form; line 3 is the small print.",
@@ -29,6 +30,8 @@
     "The consent texts contain NO placeholders, so one text and one hash fit every plugin, website and app.",
     "Placeholders used outside the consent texts: {plugin_name}, {plugin_version}, {email}, {date}, {year}, {privacy_url}, {privacy_email}, {contact_email}, {postal_address}, {signup_place}, {app_name}, {site_name}, {unsubscribe_link}.",
     "Usage rendering: line 1 of consents[usage].text is the visible sentence (opt-in screen and notice); the '- ' lines are the bullets inside 'What we collect', in this order. Render them from the text itself, so what is shown is exactly what is hashed.",
+    "Contact line (usage texts whose covers include 'contact', first: usage-2026-12b-en): line 2 is not a bullet. It is shown, never hidden or collapsed, as one small grey line under the sentence on the opt-in screen and on the notice, before the buttons. Allow then sends the clicking admin's email (fallback: the site admin email), first name (only when set in the profile) and language with method optin_allow (screen) or notice_allow (notice). Skip, No thanks, the settings toggle and background reports never send it.",
+    "Contact proof (marketing grant from Allow): the person's ledger row stores channel plugin_box, method optin_allow or notice_allow, the usage text version + hash that was shown (it contains the disclosure line), time, plugin slug, IP and user agent of the request (the WordPress site's server, as for the newsletter card). Same server path as the linked newsletter card: MX check, suppression, resubscribe wait, daily caps, source = plugin slug, from-{slug} tag, site link (usage is on).",
     "Marketing rendering (every newsletter form, plugin card and SaaS sign-up): lines 1 and 2 of consents[marketing].text, joined by one space, are the description (one paragraph under the heading, or the SaaS checkbox label). Line 3 is the small print, followed by one space and the small_print link. Never shorten, reorder or translate them.",
     "Consent proof to store for marketing (single opt-in, so all of it at the Subscribe click): email, text_version, text_sha256, privacy_policy_version, consent_method ('form_submit' on forms and the plugin card, 'checkbox' in SaaS apps), source (plugin:{slug}/channel:plugin-box, site:{host}/form:inline|footer|slide-in plus the page path, app:{slug}), submitted_at (UTC), IP address and user agent of the request (for the plugin card: the admin's browser IP and user agent, passed by the client library, not the web server's). This is the GDPR Art 7(1) proof and the 'date, time, purpose and manner' record of CRTC Bulletin 2012-548.",
     "Usage proof: site id, text_version, text_sha256, granted_at (UTC), plugin slug that showed the screen or notice, client version, privacy_policy_version.",
@@ -38,9 +41,28 @@
     "Product lists (VidShop users, Media Sweep users, AI Sales Agent users, ViewMeter users) are covered by marketing line 2. Allowed inputs only: the source of the signup (plugin card of that plugin) and plugins seen on a site that shares usage data AND is linked to the person. Never link a person to a site by guessing (same host, admin email match).",
     "No dark patterns: Allow and No thanks / Skip the same size and style; slide-in close always visible; no countdown, no guilt text; a refusal is never asked again by the same surface.",
     "Translations: consent texts in English only in v2 (do not wrap them in __()). A translated text needs its own version and hash, for example marketing-2026-12-fr. Other UI strings may be translated.",
-    "tests/contract/fixtures/*.json and every test that pins hashes: use the two text_sha256 values below (usage unchanged, marketing new)."
+    "tests/contract/fixtures/*.json and every test that pins hashes: use the text_sha256 values below. Order matters for clients: the first row of a purpose is the current text."
   ],
   "consents": [
+    {
+      "purpose": "usage",
+      "version": "usage-2026-12b-en",
+      "locale": "en_US",
+      "replaces": "usage-2026-12-en",
+      "short_label": "Share usage data",
+      "covers": [
+        "env",
+        "our_plugins",
+        "flags",
+        "counts",
+        "environment",
+        "extensions",
+        "contact"
+      ],
+      "text": "Allow WPCreatix to collect non-sensitive usage data, including the list of plugins and themes, to improve our plugins. You can turn this off anytime.\nAllow also shares your name and email, so we can send you product news, tips and offers. Unsubscribe anytime.\n- Site: address, a random site ID, language, WordPress, PHP and MySQL versions, server type, multisite or not.\n- Live, staging or local. A staging or local copy may be linked to your live site.\n- Plugins and themes: name, slug, version, author, active or not.\n- Our plugins: which ones, versions and install dates.\n- Rounded counts, like 100-999 posts, and how often you use some of our features.\n- WooCommerce: store currency and country.\n- When: about once a week, and when our plugins are activated, deactivated, updated or deleted.\n- Your country, read from your server's IP address. We do not store the IP.\n- Never: your content, customer or order data, user names, passwords, or other users' emails.\n- We never sell this data.\n- Sent to WPCreatix (Wuzzify LLC, Cairo, Egypt). Covers all WPCreatix plugins on this site.",
+      "text_sha256": "a89fd10b9102122e58b7b2a2a5be2133b81291c3ac27043e74d9861f2fc9d937",
+      "details_link_text": "See exactly what is sent"
+    },
     {
       "purpose": "usage",
       "version": "usage-2026-12-en",
@@ -73,9 +95,9 @@
   },
   "card": {
     "_notes": [
-      "The FULL-SCREEN OPT-IN (Freemius style, design 4-V2 with a SKY-BLUE #88c5ff top band instead of green). Usage only, no email. Shown INSTEAD of the plugin UI the FIRST time an admin opens one of our plugin's own admin pages, on new installs AND on existing installs after the update that adds it. NO redirect on activation. Shown once per site (the choice is shared by all WPCreatix plugins), never on the dashboard, Plugins screen or other plugins' pages (Guideline 11).",
+      "The FULL-SCREEN OPT-IN (Freemius style, design 4-V2 with a SKY-BLUE #88c5ff top band instead of green). Usage data, plus the admin's name and email for the newsletter (the contact line, line 2 of the usage text, always visible in small grey under the sentence). Shown INSTEAD of the plugin UI the FIRST time an admin opens one of our plugin's own admin pages, on new installs AND on existing installs after the update that adds it. NO redirect on activation. Shown once per site (the choice is shared by all WPCreatix plugins), never on the dashboard, Plugins screen or other plugins' pages (Guideline 11).",
       "Layout: band with stub_label + WPCreatix logo; plugin icon + {plugin_name}; title; the sentence (line 1 of consents[usage].text); [Allow & Continue] [Skip] the same size; under them the collapsed 'What we collect' (bullets from the text, then preview_link) and privacy_link.",
-      "Allow & Continue = granted row for usage-2026-12-en, then open the plugin page. Skip = nothing sent (local flag only), open the plugin page with every feature working (Guideline 7). Skip is a real button, not a faint link.",
+      "Allow & Continue = granted row for usage-2026-12b-en plus the contact (name, email), then open the plugin page. Skip = nothing sent (local flag only), open the plugin page with every feature working (Guideline 7). Skip is a real button, not a faint link.",
       "update_badge + update_line: optional, only for existing installs seeing it after the update. Not hashed.",
       "After Skip, the only other ask is optin_notice, once."
     ],
@@ -97,8 +119,8 @@
   "optin_notice": {
     "_notes": [
       "WooCommerce-style notice (design 5-V2: WP notice frame with a dark edge, plugin icon, our buttons). Shown ONCE, only to sites that clicked Skip on the opt-in screen, at the earliest 7 days later, only on our own plugin admin pages (Guideline 11), only to users with manage_options.",
-      "Line = lead + ' ' + line 1 of consents[usage].text exactly (same hash as the screen). 'What we collect' opens the same bullets in place. Buttons [Allow] [No thanks] the same size, plus the standard WP dismiss (X).",
-      "No thanks or X = never ask again on this site. Allow = granted row for usage-2026-12-en; the notice turns into done_yes for this page view."
+      "Line = lead + ' ' + line 1 of consents[usage].text exactly (same hash as the screen), then the contact line (line 2) in small grey under it. 'What we collect' opens the same bullets in place. Buttons [Allow] [No thanks] the same size, plus the standard WP dismiss (X).",
+      "No thanks or X = never ask again on this site. Allow = granted row for usage-2026-12b-en plus the contact; the notice turns into done_yes for this page view."
     ],
     "lead": "Help improve {plugin_name}.",
     "details_link": "What we collect",

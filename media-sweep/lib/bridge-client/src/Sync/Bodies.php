@@ -8,6 +8,7 @@
 namespace WPCreatix\BridgeClient\Sync;
 
 use WPCreatix\BridgeClient\Config;
+use WPCreatix\BridgeClient\Consent\Contact;
 use WPCreatix\BridgeClient\Consent\Texts;
 
 /**
@@ -47,6 +48,11 @@ final class Bodies {
 			'via' => (string) $via,
 		);
 		$body['consent'] = array( 'usage' => self::usage_block( $state ) );
+		$contact         = self::contact_block( $state );
+
+		if ( null !== $contact ) {
+			$body['consent']['contact'] = $contact;
+		}
 
 		if ( $usage && is_array( $snapshot ) ) {
 			$body['snapshot'] = $snapshot;
@@ -211,14 +217,36 @@ final class Bodies {
 	}
 
 	/**
-	 * Data of a usage consent.granted event.
+	 * Data of a usage consent.granted event; the notice Allow on a registered site adds the contact.
 	 *
-	 * @param array<string,mixed> $state   Store state.
-	 * @param string|null         $version Text version to grant (default: the one in the state, else the current one).
+	 * @param array<string,mixed>       $state   Store state.
+	 * @param string|null               $version Text version to grant (default: the one in the state, else the current one).
+	 * @param array<string,string>|null $contact Contact of an Allow click, only on a text with the contact line.
 	 * @return array<string,mixed> Event data.
 	 */
-	public static function granted_data( array $state, $version = null ) {
-		return array_merge( array( 'purpose' => 'usage' ), self::proof( 'usage', null === $version ? self::version_in( $state, 'usage' ) : $version ) );
+	public static function granted_data( array $state, $version = null, $contact = null ) {
+		$data    = array_merge( array( 'purpose' => 'usage' ), self::proof( 'usage', null === $version ? self::version_in( $state, 'usage' ) : $version ) );
+		$contact = Contact::clean( $contact );
+
+		if ( null !== $contact && Texts::shows_contact( $data['text_version'] ) ) {
+			$data['contact'] = $contact;
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Contact block of a register body: only with usage on a text that shows the contact line, and an Allow contact waiting.
+	 *
+	 * @param array<string,mixed> $state Store state.
+	 * @return array<string,string>|null Block.
+	 */
+	private static function contact_block( array $state ) {
+		if ( empty( $state['usage']['granted'] ) || ! Texts::shows_contact( self::version_in( $state, 'usage' ) ) ) {
+			return null;
+		}
+
+		return Contact::clean( isset( $state['optin_contact'] ) ? $state['optin_contact'] : null );
 	}
 
 	/**

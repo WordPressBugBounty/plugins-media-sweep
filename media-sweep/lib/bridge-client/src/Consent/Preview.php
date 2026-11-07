@@ -13,7 +13,7 @@ use WPCreatix\BridgeClient\Snapshot\Snapshot;
 use WPCreatix\BridgeClient\Sync\Bodies;
 
 /**
- * Builds the bodies with the same code that sends them, so the preview is exact.
+ * Builds the bodies with the same code that sends them, so the preview is exact (the Allow contact included).
  */
 final class Preview {
 
@@ -34,13 +34,14 @@ final class Preview {
 			$store->set( array( 'uid' => $uid ) );
 		}
 
-		$state          = $store->all();
-		$proof          = Texts::proof( 'usage' );
-		$state['usage'] = array(
+		$state                  = $store->all();
+		$proof                  = Texts::proof( 'usage' );
+		$state['usage']         = array(
 			'granted'      => true,
 			'text_version' => null === $proof ? '' : $proof['text_version'],
 			'at'           => $client->now(),
 		);
+		$state['optin_contact'] = Contact::current( 'optin_allow' );
 
 		return array(
 			'body'       => Bodies::register( $state, $uid, null, 'new', $client->lib(), (string) $product['slug'], Identity::home(), Snapshot::build( $store, $client->products(), $client->now() ) ),

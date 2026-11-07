@@ -25,6 +25,11 @@ final class Texts {
 	);
 
 	/**
+	 * Usage scope of a text that also shares the clicking admin's name and email.
+	 */
+	const CONTACT = 'contact';
+
+	/**
 	 * Parsed files by name.
 	 *
 	 * @var array<string,array<string,mixed>>
@@ -96,7 +101,7 @@ final class Texts {
 	}
 
 	/**
-	 * Usage scopes a text version covers (empty for marketing and unknown versions).
+	 * Usage scopes a text version covers (empty for marketing and unknown versions); a row's own covers win over its file's.
 	 *
 	 * @param string $version Text version.
 	 * @return array<int,string> Scopes.
@@ -105,12 +110,40 @@ final class Texts {
 		foreach ( self::FILES as $name => $covers ) {
 			foreach ( self::rows( self::all( $name ) ) as $row ) {
 				if ( 'usage' === $row['purpose'] && (string) $version === (string) $row['version'] ) {
-					return $covers;
+					return isset( $row['covers'] ) && is_array( $row['covers'] ) ? array_values( array_filter( $row['covers'], 'is_string' ) ) : $covers;
 				}
 			}
 		}
 
 		return array();
+	}
+
+	/**
+	 * Whether Allow on a usage text also shares the admin's name and email (its covers include contact).
+	 *
+	 * @param string $version Text version.
+	 * @return bool True for a text with the contact line.
+	 */
+	public static function shows_contact( $version ) {
+		return in_array( self::CONTACT, self::covers( (string) $version ), true );
+	}
+
+	/**
+	 * Newest usage text without the contact line (the settings toggle shows no contact line, so it grants this one).
+	 *
+	 * @return array{text_version:string,text_sha256:string}|null Pair, or null when none is bundled.
+	 */
+	public static function plain_usage_proof() {
+		foreach ( self::rows( self::all() ) as $row ) {
+			if ( 'usage' === $row['purpose'] && ! self::shows_contact( (string) $row['version'] ) ) {
+				return array(
+					'text_version' => (string) $row['version'],
+					'text_sha256'  => (string) $row['text_sha256'],
+				);
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -233,6 +266,22 @@ final class Texts {
 		$lines = self::lines( 'usage' );
 
 		return $lines ? $lines[0] : '';
+	}
+
+	/**
+	 * The contact line (line 2 of the current usage text when it covers contact), shown small under the sentence.
+	 *
+	 * @return string Line, or '' when the current text has none.
+	 */
+	public static function contact_line() {
+		$row   = self::consent( 'usage' );
+		$lines = self::lines( 'usage' );
+
+		if ( null === $row || ! self::shows_contact( (string) $row['version'] ) || ! isset( $lines[1] ) || 0 === strpos( $lines[1], '- ' ) ) {
+			return '';
+		}
+
+		return $lines[1];
 	}
 
 	/**

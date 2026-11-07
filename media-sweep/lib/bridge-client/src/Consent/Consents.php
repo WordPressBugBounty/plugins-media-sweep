@@ -10,6 +10,7 @@ namespace WPCreatix\BridgeClient\Consent;
 use WPCreatix\BridgeClient\Client;
 use WPCreatix\BridgeClient\Config;
 use WPCreatix\BridgeClient\Extensions\State;
+use WPCreatix\BridgeClient\Newsletter\Box;
 use WPCreatix\BridgeClient\Queue;
 use WPCreatix\BridgeClient\Sync\Bodies;
 
@@ -35,7 +36,7 @@ final class Consents {
 	}
 
 	/**
-	 * Opt-in screen Allow & Continue: grant the current usage text.
+	 * Opt-in screen Allow & Continue: grant the current usage text and share the admin's contact.
 	 *
 	 * @param string $via Plugin slug of the screen.
 	 * @return string usage or retry.
@@ -43,7 +44,7 @@ final class Consents {
 	public function allow( $via ) {
 		$this->client->store()->set( array( 'optin_answered_at' => $this->client->now() ) );
 
-		return 'saved' === $this->set_usage( true, $via ) ? 'usage' : 'retry';
+		return 'saved' === $this->set_usage( true, $via, 'optin_allow' ) ? 'usage' : 'retry';
 	}
 
 	/**
@@ -65,7 +66,7 @@ final class Consents {
 	}
 
 	/**
-	 * Notice Allow: grant usage and end the notice.
+	 * Notice Allow: grant usage, share the admin's contact and end the notice.
 	 *
 	 * @param string $via Plugin slug of the screen.
 	 * @return string usage or retry.
@@ -73,7 +74,7 @@ final class Consents {
 	public function notice_allow( $via ) {
 		$this->client->store()->set( array( 'notice_done' => true ) );
 
-		return 'saved' === $this->set_usage( true, $via ) ? 'usage' : 'retry';
+		return 'saved' === $this->set_usage( true, $via, 'notice_allow' ) ? 'usage' : 'retry';
 	}
 
 	/**
@@ -90,11 +91,12 @@ final class Consents {
 	/**
 	 * Turn usage sharing on or off (settings toggle and the two asks).
 	 *
-	 * @param bool   $on  Usage wanted.
-	 * @param string $via Plugin slug of the screen.
+	 * @param bool   $on     Usage wanted.
+	 * @param string $via    Plugin slug of the screen.
+	 * @param string $method optin_allow or notice_allow for an Allow click (shares the contact); '' for the settings toggle.
 	 * @return string saved or retry.
 	 */
-	public function set_usage( $on, $via ) {
+	public function set_usage( $on, $via, $method = '' ) {
 		$client = $this->client;
 		$store  = $client->store();
 		$was    = $store->usage();
@@ -109,6 +111,7 @@ final class Consents {
 		}
 
 		if ( ! $on ) {
+			$store->set( array( 'optin_contact' => null ) );
 			$store->patch( 'usage', array( 'granted' => false ) );
 			Queue::prune( false, $client->now() );
 			Queue::drop_grants( 'usage' );
@@ -117,11 +120,15 @@ final class Consents {
 			return $this->send( array( 'consent.withdrawn', array( 'purpose' => 'usage' ) ), $via, false );
 		}
 
-		$proof = Texts::proof( 'usage' );
+		// Allow grants the text it showed (with the contact line); the toggle shows none, so it grants the plain text.
+		$proof   = '' === (string) $method ? Texts::plain_usage_proof() : Texts::proof( 'usage' );
+		$contact = '' === (string) $method ? null : Contact::current( (string) $method );
 
 		if ( null === $proof ) {
 			return 'retry';
 		}
+
+		$contact = null !== $contact && Texts::shows_contact( $proof['text_version'] ) ? $contact : null;
 
 		$store->patch(
 			'usage',
@@ -132,7 +139,20 @@ final class Consents {
 			)
 		);
 
-		return $this->send( array( 'consent.granted', Bodies::granted_data( $store->all() ) ), $via, true );
+		// Not registered: the register body carries the contact; registered: the consent event does.
+		if ( ! $store->registered() ) {
+			$store->set( array( 'optin_contact' => $contact ) );
+			$contact = null;
+		}
+
+		$result = $this->send( array( 'consent.granted', Bodies::granted_data( $store->all(), null, $contact ) ), $via, true );
+
+		// The event carried the Allow contact: the newsletter card has nothing left to ask.
+		if ( 'saved' === $result && null !== $contact ) {
+			Box::remember( 'subscribed' );
+		}
+
+		return $result;
 	}
 
 	/**
